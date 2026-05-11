@@ -19,9 +19,16 @@
   --border:#2a2d31;--border2:#363a3f;
   --r:14px;--rs:8px;
 }
-/* 스크롤 시 따라 올라가는 현상 방지를 위해 body 고정 */
-body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden;padding:0}
-.phone{width:390px;height:820px;max-height:100vh;background:var(--bg0);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;outline:10px solid #0f1012;box-shadow:0 30px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
+
+/* 안드로이드 하단 잘림 해결: 100dvh 적용 및 가로 폭 오버플로우 방지 */
+body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;height:100dvh;overflow:hidden;padding:0}
+.phone{width:390px;max-width:100%;height:820px;max-height:100vh;max-height:100dvh;background:var(--bg0);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;outline:10px solid #0f1012;box-shadow:0 30px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
+
+/* 실제 모바일 기기에서는 목업 테두리를 제거하여 화면에 꽉 차게 만듦 */
+@media (max-width: 430px) {
+  .phone { outline: none; border-radius: 0; box-shadow: none; height: 100dvh; }
+}
+
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}*{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
 
 /* header */
@@ -239,7 +246,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .player-progress{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .prog-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--txt2);min-width:36px}
 .prog-track{flex:1;height:4px;background:var(--bg3);border-radius:2px;position:relative;cursor:pointer}
-/* 애니메이션 진행을 위해 transition 제거 후 JS requestAnimationFrame 사용 */
 .prog-fill{height:100%;background:linear-gradient(90deg, var(--gemini1), var(--gemini2));border-radius:2px;width:0%}
 .prog-dot{width:14px;height:14px;background:var(--gemini2);border-radius:50%;position:absolute;top:50%;transform:translateY(-50%) translateX(-50%);cursor:grab;box-shadow:0 0 10px rgba(155,114,203,0.5)}
 .player-btns{display:flex;align-items:center;justify-content:center;gap:28px}
@@ -618,7 +624,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
         <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📷</div>
         <div style="text-align:left;flex:1">
           <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:2px">작품 스캔하기</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.65)">카메라로 작품을 촬영하면 Gemini가 즉시 분석합니다</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.65)">카메라로 작품을 촬영하면 AI가 즉시 분석합니다</div>
         </div>
         <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,.7)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
