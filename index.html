@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg0:#08090a;--bg1:#111214;--bg2:#1a1c1f;--bg3:#232629;
+  --gold:#c9a84c;--gold2:#e8c97a;--gold-dim:rgba(201,168,76,0.15);
+  --quest:#e8523a;--quest-dim:rgba(232,82,58,0.15);
+  --local:#3dcb7f;--local-dim:rgba(61,203,127,0.15);
+  --gemini1:#4285f4;--gemini2:#9b72cb;--gemini3:#d96570;
+  --gallery1:#8b6914;--gallery2:#c4982a;--gallery3:#e8c97a;
+  --txt1:#f0ede8;--txt2:#9a9690;--txt3:#5a5754;
+  --border:#2a2d31;--border2:#363a3f;
+  --r:14px;--rs:8px;
+}
+body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px 0}
+.phone{width:390px;height:820px;background:var(--bg0);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;outline:10px solid #0f1012;box-shadow:0 30px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}*{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+
+/* header */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;background:var(--bg0);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:30}
+.hdr-left{width:32px;display:flex;align-items:center}
+.hdr-btn{background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color .2s}
+.hdr-btn:active{color:var(--gold)}
+.hdr-title{font-family:'Playfair Display',serif;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt1);text-align:center;flex:1}
+.hdr-right{width:32px;display:flex;justify-content:flex-end}
+.timer-badge{background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;display:none;align-items:center;gap:4px}
+.timer-badge.show{display:flex}
+
+/* content */
+.content{flex:1;position:relative;overflow:hidden;background:var(--bg1)}
+.view{display:none;flex-direction:column;height:100%;overflow-y:auto}
+.view.active{display:flex;animation:fadeUp .28s cubic-bezier(.2,.8,.4,1) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* tab bar */
+.tabbar{display:none;flex-shrink:0;background:var(--bg0);border-top:1px solid var(--border);padding:10px 6px 20px;z-index:30}
+.tabbar.show{display:flex;justify-content:space-around}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:var(--rs);transition:all .2s;color:var(--txt3)}
+.tab-btn.active{color:var(--gold)}
+.tab-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.tab-label{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+
+/* side menu */
+.side-menu{position:absolute;inset:0;background:var(--bg0);z-index:50;transform:translateX(-100%);transition:transform .3s cubic-bezier(.2,.8,.4,1);display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.side-menu.open{transform:translateX(0)}
+.menu-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid var(--border)}
+.menu-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--txt1);letter-spacing:.1em}
+.menu-body{padding:24px 20px;flex:1}
+.menu-item{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);color:var(--txt2);font-size:13px;cursor:pointer;transition:color .2s}
+.menu-item:hover{color:var(--txt1)}
+.menu-item.highlight{color:var(--gallery2);font-weight:600}
+
+/* modal */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:60;display:none;backdrop-filter:blur(4px)}
+.overlay.show{display:block;animation:fadeIn .2s ease both}
+.modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);width:80%;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:28px 24px;z-index:70;display:none;flex-direction:column;align-items:center;text-align:center}
+.modal.show{display:flex;animation:popIn .25s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:22px}
+.modal-icon.err{background:var(--quest-dim);color:var(--quest)}
+.modal-icon.ok{background:var(--local-dim);color:var(--local)}
+.modal h3{font-size:17px;font-weight:600;color:var(--txt1);margin-bottom:8px}
+.modal p{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:24px}
+.modal-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;border-radius:var(--r);cursor:pointer;transition:background .2s}
+.modal-btn:active{background:#2e3238}
+
+/* home */
+#view-home{padding:24px 20px;gap:0}
+.home-eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--txt3);border-left:2px solid var(--txt3);padding-left:10px;margin-bottom:12px}
+.home-title{font-family:'Playfair Display',serif;font-size:32px;color:var(--txt1);line-height:1.2;margin-bottom:28px}
+.tour-card{position:relative;border-radius:18px;overflow:hidden;cursor:pointer;border:1px solid var(--border);margin-bottom:14px;transition:border-color .2s,transform .15s}
+.tour-card:active{transform:scale(.98)}
+.tour-card.featured{height:200px}
+.tour-card.locked{height:130px;opacity:.4;cursor:not-allowed;pointer-events:none}
+.tour-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tour-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.3) 60%,transparent 100%)}
+.tour-info{position:absolute;bottom:0;left:0;right:0;padding:18px}
+.tour-badge{display:inline-block;background:var(--gold);color:#000;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:8px}
+.tour-name{font-family:'Playfair Display',serif;font-size:20px;color:#fff;line-height:1.2;margin-bottom:4px}
+.tour-sub{font-size:11px;color:rgba(255,255,255,.6)}
+.tour-locked-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.coming-pill{font-size:9px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--txt3);color:var(--txt3);padding:4px 10px;border-radius:20px}
+
+/* tour list */
+#view-tour{padding:24px 20px;gap:0}
+.list-eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);border-left:2px solid var(--gold);padding-left:10px;margin-bottom:12px}
+.list-title{font-family:'Playfair Display',serif;font-size:28px;color:var(--txt1);line-height:1.2;margin-bottom:8px}
+.list-desc{font-size:12px;color:var(--txt2);line-height:1.65;margin-bottom:24px}
+.spot-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,background .15s;display:flex;justify-content:space-between;align-items:flex-start}
+.spot-card:active{background:var(--bg3)}
+.spot-card.quest-card{border-color:rgba(232,82,58,.4)}
+.spot-card.local-card{border-color:rgba(61,203,127,.4)}
+.spot-left{flex:1}
+.spot-badge{display:inline-flex;align-items:center;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:8px}
+.spot-badge.audio{background:linear-gradient(90deg, var(--gemini1), var(--gemini2), var(--gemini3));color:#fff}
+.spot-badge.quest{background:var(--quest-dim);color:var(--quest)}
+.spot-badge.local{background:var(--local-dim);color:var(--local)}
+.spot-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--txt1);margin-bottom:4px}
+.spot-sub{font-size:11px;color:var(--txt2)}
+.spot-pts{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--txt2);margin-top:2px}
+.spot-arrow{color:var(--txt3);margin-top:4px;flex-shrink:0}
+
+/* ── MAP (Leaflet) ── */
+#view-map{position:relative;overflow:hidden}
+#leaflet-map{position:absolute;inset:0;z-index:1}
+.map-ui-layer{position:absolute;inset:0;z-index:10;pointer-events:none}
+.map-guide{position:absolute;top:12px;left:12px;right:12px;z-index:20;background:rgba(26,28,31,.97);border:1px solid var(--gold);border-radius:var(--r);padding:12px 14px;display:none;animation:slideDown .3s cubic-bezier(.2,.8,.4,1) both;pointer-events:none}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.map-guide.show{display:flex;align-items:center;gap:10px}
+.guide-icon{width:32px;height:32px;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:14px;flex-shrink:0}
+.guide-text{font-size:11px;color:var(--txt1);line-height:1.5}
+.guide-text strong{color:var(--gold)}
+.map-ar-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--txt1);color:#000;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px 24px;border-radius:30px;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;z-index:20;transition:transform .15s,background .2s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);pointer-events:all}
+.map-ar-btn:active{transform:translateX(-50%) scale(.97)}
+
+/* Leaflet custom marker styles */
+.lf-audio-pin{width:34px;height:34px;border-radius:50%;background:var(--gemini2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer}
+.lf-quest-pin{width:34px;height:34px;border-radius:50%;background:var(--quest);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer;animation:pulse-q 1.8s infinite}
+.lf-local-pin{width:34px;height:34px;border-radius:50%;background:var(--local);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer;animation:pulse-l 1.8s infinite}
+.lf-user-pin{width:18px;height:18px;border-radius:50%;background:#4fa3ff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(79,163,255,.25)}
+.leaflet-popup-content-wrapper{background:rgba(26,28,31,.97)!important;border:1px solid var(--border2)!important;color:var(--txt1)!important;border-radius:10px!important;box-shadow:0 4px 20px rgba(0,0,0,.6)!important}
+.leaflet-popup-tip{background:rgba(26,28,31,.97)!important}
+.lf-popup-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--txt1);margin-bottom:4px}
+.lf-popup-sub{font-size:11px;color:var(--txt2);margin-bottom:10px}
+.lf-popup-btn{background:var(--quest);border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 14px;border-radius:var(--rs);cursor:pointer;width:100%}
+.lf-popup-btn.audio{background:var(--gemini2)}
+.lf-popup-btn.local{background:var(--local);color:#000}
+@keyframes pulse-q{0%{box-shadow:0 0 0 0 rgba(232,82,58,.7),0 2px 8px rgba(0,0,0,.5)}70%{box-shadow:0 0 0 12px rgba(232,82,58,0),0 2px 8px rgba(0,0,0,.5)}100%{box-shadow:0 0 0 0 rgba(232,82,58,0),0 2px 8px rgba(0,0,0,.5)}}
+@keyframes pulse-l{0%{box-shadow:0 0 0 0 rgba(61,203,127,.7),0 2px 8px rgba(0,0,0,.5)}70%{box-shadow:0 0 0 12px rgba(61,203,127,0),0 2px 8px rgba(0,0,0,.5)}100%{box-shadow:0 0 0 0 rgba(61,203,127,0),0 2px 8px rgba(0,0,0,.5)}}
+
+/* ar scan */
+#view-ar-scan{align-items:center;justify-content:center;position:relative;background:var(--bg0)}
+.ar-bg{position:absolute;inset:0;background:url('https://picsum.photos/id/1076/400/800') center/cover no-repeat;opacity:.3;filter:blur(3px)}
+.ar-center{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:10;gap:28px;padding:24px}
+.radar-wrap{position:relative;width:200px;height:200px}
+.radar-ring{position:absolute;border-radius:50%;border:1px solid rgba(201,168,76,.3)}
+.radar-ring:nth-child(1){inset:0}
+.radar-ring:nth-child(2){inset:25px}
+.radar-ring:nth-child(3){inset:50px}
+.radar-cross{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.radar-cross::before,.radar-cross::after{content:'';position:absolute;background:rgba(201,168,76,.25)}
+.radar-cross::before{width:100%;height:1px}
+.radar-cross::after{width:1px;height:100%}
+.radar-sweep{position:absolute;inset:0;border-radius:50%;overflow:hidden}
+.radar-sweep::before{content:'';position:absolute;top:50%;left:50%;width:50%;height:50%;background:conic-gradient(from 0deg,transparent 0%,rgba(201,168,76,.4) 90%,transparent 100%);transform-origin:0 0;animation:sweep 1.6s linear infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.radar-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.ar-status{font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:.08em;text-align:center}
+.ar-panel{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to bottom,transparent,var(--bg0) 30%);padding:20px;z-index:20;display:none;animation:slideUpPanel .4s cubic-bezier(.2,.8,.4,1) both}
+.ar-panel.show{display:block}
+@keyframes slideUpPanel{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.ar-card{background:rgba(26,28,31,.97);border:1px solid var(--border2);border-radius:20px;padding:20px;backdrop-filter:blur(12px)}
+.ar-card-hdr{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ar-card-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ar-card-type{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
+.ar-card-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--txt1)}
+.ar-card-desc{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
+.ar-cta{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:15px;border-radius:var(--r);border:none;cursor:pointer;transition:opacity .2s}
+.ar-cta:active{opacity:.8}
+
+/* quest */
+#view-quest{padding:24px 20px;position:relative}
+.quest-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.2;filter:blur(6px);pointer-events:none}
+.quest-content{position:relative;z-index:1;display:flex;flex-direction:column;height:100%}
+.quest-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.quest-status-badge{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid}
+.quest-pts-badge{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--txt1)}
+.quest-body{flex:1;display:flex;align-items:center;justify-content:center;padding-bottom:30px}
+.quest-card{background:rgba(8,9,10,.85);border:1px solid var(--border2);border-radius:20px;padding:24px;width:100%;backdrop-filter:blur(10px)}
+.quest-q{font-family:'Playfair Display',serif;font-size:18px;color:var(--txt1);line-height:1.5;margin-bottom:24px}
+.quiz-opts{display:flex;flex-direction:column;gap:10px}
+.quiz-opt{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:15px 16px;color:var(--txt1);font-size:14px;text-align:left;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+.quiz-opt:active{background:var(--bg3)}
+.quiz-opt.correct{background:var(--local-dim);border-color:var(--local);color:var(--local)}
+.quiz-opt.wrong{background:var(--quest-dim);border-color:var(--quest);color:var(--quest);animation:shake .25s ease both}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.tap-ring{position:relative;width:150px;height:150px;margin:0 auto 20px;border-radius:50%;border:2px dashed var(--border2)}
+.tap-btn{position:absolute;inset:8px;border-radius:50%;border:2px solid var(--quest);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;transition:background .1s}
+.tap-btn:active{background:var(--quest-dim)}
+.tap-bar-wrap{background:var(--bg3);height:4px;border-radius:2px;overflow:hidden;margin-top:8px}
+.tap-bar{height:100%;background:var(--quest);border-radius:2px;transition:width .1s;width:0%}
+.scan-frame{border:1.5px dashed var(--local);border-radius:var(--r);height:160px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-bottom:16px}
+.scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:var(--local);box-shadow:0 0 10px var(--local);display:none;animation:scanMove 1.2s linear infinite}
+@keyframes scanMove{0%{top:0}100%{top:100%}}
+.scan-hint{font-size:12px;color:var(--txt3)}
+.scan-cta{width:100%;background:var(--local);color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:14px;border-radius:var(--r);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+.scan-cta:active{opacity:.8}
+.success-card{text-align:center;padding:8px 0}
+.success-icon{font-size:52px;margin-bottom:12px;animation:bounceIn .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes bounceIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+.success-label{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.success-pts{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:var(--txt1);margin-bottom:16px}
+.local-reward-pill{background:var(--local-dim);border:1px solid var(--local);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--local);margin-bottom:20px;text-align:left}
+.success-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.s-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:13px;border-radius:var(--rs);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background .2s}
+.s-btn:active{background:var(--bg2)}
+.s-btn.gold{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+
+/* ── AUDIO PLAYER — FIX #3: progress bar always visible in result ── */
+#view-player{overflow:hidden;background:var(--bg1)}
+.player-hero{position:relative;height:220px;flex-shrink:0;overflow:hidden}
+.player-hero img{width:100%;height:100%;object-fit:cover;opacity:.75}
+.player-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg1) 0%,rgba(8,9,10,.5) 60%,transparent 100%)}
+.camera-flash{position:absolute;inset:0;background:#fff;z-index:50;opacity:0;pointer-events:none;transition:opacity 0.15s ease-out}
+.camera-scan-line{position:absolute;left:0;right:0;height:2px;background:var(--gemini1);box-shadow:0 0 20px 4px var(--gemini1);z-index:40;display:none}
+.player-hero-info{position:absolute;bottom:0;left:0;right:0;padding:20px 22px}
+.player-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:linear-gradient(90deg, var(--gemini1), var(--gemini2), var(--gemini3));color:#fff;padding:4px 10px;border-radius:20px;margin-bottom:8px;box-shadow:0 4px 10px rgba(155,114,203,0.3)}
+.player-title{font-family:'Playfair Display',serif;font-size:24px;color:#fff;line-height:1.2}
+.gemini-init{padding:24px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;overflow:hidden}
+.gemini-init-icon{font-size:42px;margin-bottom:16px;background:linear-gradient(135deg, var(--gemini1), var(--gemini2), var(--gemini3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.gemini-init h3{font-size:18px;font-weight:600;color:var(--txt1);margin-bottom:12px}
+.gemini-init p{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:28px}
+.btn-gemini{background:linear-gradient(135deg, var(--gemini1), var(--gemini2), var(--gemini3));color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:16px 24px;border-radius:30px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 10px 20px rgba(155,114,203,0.3);transition:transform .2s}
+.btn-gemini:active{transform:scale(0.96)}
+.gemini-loading{padding:40px 20px;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;flex:1}
+.gemini-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--gemini2);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gemini-loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--txt2);background:linear-gradient(90deg, var(--gemini1), var(--gemini2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:pulseTxt 1.5s infinite}
+@keyframes pulseTxt{0%,100%{opacity:.6}50%{opacity:1}}
+/* FIX #3: result pane always shows player controls */
+.gemini-result{display:none;flex-direction:column;flex:1;overflow:hidden}
+.player-controls{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 22px;flex-shrink:0}
+.player-now-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gemini2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.player-progress{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.prog-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--txt2);min-width:36px}
+.prog-track{flex:1;height:4px;background:var(--bg3);border-radius:2px;position:relative;cursor:pointer}
+.prog-fill{height:100%;background:linear-gradient(90deg, var(--gemini1), var(--gemini2));border-radius:2px;width:0%;transition:width .3s linear}
+.prog-dot{width:14px;height:14px;background:var(--gemini2);border-radius:50%;position:absolute;top:50%;transform:translateY(-50%) translateX(-50%);transition:left .3s linear;cursor:grab;box-shadow:0 0 10px rgba(155,114,203,0.5)}
+.player-btns{display:flex;align-items:center;justify-content:center;gap:28px}
+.p-btn{background:none;border:none;color:var(--txt2);cursor:pointer;display:flex;align-items:center;transition:color .2s;padding:6px}
+.p-btn:hover{color:var(--txt1)}
+.p-play{width:52px;height:52px;background:linear-gradient(135deg, var(--gemini1), var(--gemini2));border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
+.p-play:active{transform:scale(.95)}
+.p-play.playing{animation:playPulseGemini 2s infinite}
+@keyframes playPulseGemini{0%,100%{box-shadow:0 0 0 0 rgba(155,114,203,.4)}50%{box-shadow:0 0 0 12px rgba(155,114,203,0)}}
+.player-body{padding:16px 22px 40px;flex:1;overflow-y:auto}
+.transcript-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:20px}
+.transcript-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gemini2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.transcript{font-size:13px;color:var(--txt1);line-height:1.7;font-weight:300}
+.qa-title{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:12px}
+.qa-list{display:flex;flex-direction:column;gap:8px}
+.qa-btn{background:var(--bg0);border:1px solid var(--border2);border-radius:var(--rs);padding:14px 16px;color:var(--txt1);font-size:13px;text-align:left;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px}
+.qa-btn:active{background:var(--bg2);border-color:var(--gemini2)}
+.qa-icon{color:var(--gemini2);font-size:14px;margin-top:2px}
+
+/* ── NATIONAL GALLERY ── */
+#view-gallery{padding:0;gap:0;background:var(--bg0)}
+.gallery-hero{position:relative;height:160px;flex-shrink:0;overflow:hidden}
+.gallery-hero-img{width:100%;height:100%;object-fit:cover;opacity:.5}
+.gallery-hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 20%,var(--bg0) 100%)}
+.gallery-hero-info{position:absolute;bottom:0;left:0;right:0;padding:16px 20px}
+.gallery-hero-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(90deg,var(--gallery1),var(--gallery2));color:#fff;padding:3px 10px;border-radius:4px;margin-bottom:6px}
+.gallery-hero-title{font-family:'Playfair Display',serif;font-size:22px;color:#fff;line-height:1.2}
+.gallery-hero-sub{font-size:11px;color:rgba(255,255,255,.55);margin-top:3px}
+.gallery-rooms{padding:16px 20px 24px;flex:1;overflow-y:auto}
+.gallery-room-title{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gallery2);border-left:2px solid var(--gallery2);padding-left:10px;margin-bottom:14px;margin-top:4px}
+.artwork-card{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,background .15s}
+.artwork-card:active{background:var(--bg3);border-color:var(--gallery2)}
+.artwork-thumb{width:64px;height:64px;border-radius:var(--rs);overflow:hidden;flex-shrink:0;border:1px solid var(--border2)}
+.artwork-thumb img{width:100%;height:100%;object-fit:cover}
+.artwork-info{flex:1}
+.artwork-badge{display:inline-flex;align-items:center;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-bottom:5px;background:linear-gradient(90deg,var(--gallery1),var(--gallery2));color:#fff}
+.artwork-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--txt1);margin-bottom:2px;line-height:1.3}
+.artwork-artist{font-size:11px;color:var(--txt2)}
+.artwork-year{font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3);margin-top:2px}
+.artwork-arrow{color:var(--txt3);flex-shrink:0}
+
+/* Gallery scan — FIX #1: no re-scan button, goes straight to result */
+#view-gallery-scan{align-items:center;justify-content:center;position:relative;background:#000}
+.gallery-scan-bg{position:absolute;inset:0;background:url('https://picsum.photos/id/1047/400/800') center/cover no-repeat;opacity:.25;filter:blur(2px)}
+.gallery-scan-frame{position:relative;z-index:10;width:280px;height:220px;border-radius:12px;overflow:hidden}
+.scan-corner{position:absolute;width:24px;height:24px;border-color:var(--gallery2);border-style:solid;z-index:11}
+.scan-corner.tl{top:0;left:0;border-width:2px 0 0 2px;border-radius:4px 0 0 0}
+.scan-corner.tr{top:0;right:0;border-width:2px 2px 0 0;border-radius:0 4px 0 0}
+.scan-corner.bl{bottom:0;left:0;border-width:0 0 2px 2px;border-radius:0 0 0 4px}
+.scan-corner.br{bottom:0;right:0;border-width:0 2px 2px 0;border-radius:0 0 4px 0}
+.gallery-scan-sweeper{position:absolute;left:0;right:0;height:2px;background:var(--gallery2);box-shadow:0 0 12px 3px rgba(196,152,42,.6);animation:gallerySweep 1.8s ease-in-out infinite;z-index:12}
+@keyframes gallerySweep{0%{top:0%}50%{top:calc(100% - 2px)}100%{top:0%}}
+.gallery-scan-center{position:absolute;inset:0;background:url('https://picsum.photos/id/1047/280/220') center/cover;opacity:.4}
+.gallery-scan-info{position:relative;z-index:10;text-align:center;margin-top:24px;padding:0 20px}
+.gallery-scan-status{font-family:'DM Mono',monospace;font-size:12px;color:var(--gallery2);letter-spacing:.1em;margin-bottom:6px}
+.gallery-scan-hint{font-size:12px;color:var(--txt3)}
+.gallery-scan-panel{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to bottom,transparent,var(--bg0) 30%);padding:20px;z-index:20;display:none;animation:slideUpPanel .4s cubic-bezier(.2,.8,.4,1) both}
+.gallery-scan-panel.show{display:block}
+
+/* Gallery artwork detail — FIX #1 & #2 */
+#view-artwork{overflow:hidden;background:var(--bg1)}
+.artwork-hero{position:relative;height:240px;flex-shrink:0;overflow:hidden}
+.artwork-hero img{width:100%;height:100%;object-fit:cover;opacity:.85}
+.artwork-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg1) 0%,rgba(8,9,10,.4) 70%,transparent 100%)}
+.artwork-hero-info{position:absolute;bottom:0;left:0;right:0;padding:18px 22px}
+.artwork-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:linear-gradient(90deg,var(--gallery1),var(--gallery2));color:#fff;padding:4px 10px;border-radius:20px;margin-bottom:6px}
+.artwork-hero-title{font-family:'Playfair Display',serif;font-size:24px;color:#fff;line-height:1.2;margin-bottom:2px}
+.artwork-hero-artist{font-size:12px;color:rgba(255,255,255,.6)}
+/* FIX #1: init state removed; scan → loading → result only when from gallery list */
+.artwork-scan-init{padding:28px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;flex:1;overflow:hidden}
+.artwork-scan-icon{font-size:40px;margin-bottom:14px}
+.artwork-scan-init h3{font-size:17px;font-weight:600;color:var(--txt1);margin-bottom:10px}
+.artwork-scan-init p{font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:20px}
+.artwork-scan-steps{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.artwork-scan-step{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;display:flex;align-items:center;gap:12px;text-align:left}
+.step-num{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.step-text{font-size:12px;color:var(--txt2);line-height:1.4}
+.step-text strong{color:var(--txt1)}
+.btn-gallery{background:linear-gradient(135deg,var(--gallery1),var(--gallery2));color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:16px 28px;border-radius:30px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 8px 20px rgba(139,105,20,0.4);transition:transform .2s}
+.btn-gallery:active{transform:scale(.96)}
+.artwork-loading{padding:40px 20px;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;flex:1}
+.gallery-spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.08);border-top-color:var(--gallery2);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px}
+.artwork-loading-steps{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px}
+.loading-step{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--txt3);transition:color .4s}
+.loading-step.active{color:var(--gallery2)}
+.loading-step.done{color:var(--local)}
+.loading-step-icon{width:18px;height:18px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:background .4s}
+.loading-step.active .loading-step-icon{background:var(--gallery1)}
+.loading-step.done .loading-step-icon{background:var(--local-dim)}
+.artwork-result{display:none;flex-direction:column;flex:1;overflow:hidden}
+.artwork-analysis-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;flex-shrink:0;display:flex;gap:10px;overflow-x:auto}
+.analysis-pill{flex-shrink:0;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid;cursor:pointer;transition:all .2s;white-space:nowrap}
+.analysis-pill.active-pill{background:linear-gradient(90deg,var(--gallery1),var(--gallery2));border-color:transparent;color:#fff}
+.analysis-pill:not(.active-pill){background:var(--bg3);border-color:var(--border2);color:var(--txt2)}
+.artwork-body{padding:18px 20px 40px;flex:1;overflow-y:auto}
+.artwork-meta-row{display:flex;gap:10px;margin-bottom:16px}
+.artwork-meta-chip{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;text-align:center}
+.meta-chip-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:3px}
+.meta-chip-val{font-size:13px;font-weight:600;color:var(--txt1)}
+.insight-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.insight-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gallery2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.insight-txt{font-size:13px;color:var(--txt1);line-height:1.7;font-weight:300}
+.deep-q-title{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:12px}
+.deep-q-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.deep-q-btn{background:var(--bg0);border:1px solid var(--border2);border-radius:var(--rs);padding:13px 15px;color:var(--txt1);font-size:12px;text-align:left;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px}
+.deep-q-btn:active{background:var(--bg2);border-color:var(--gallery2)}
+.deep-q-icon{color:var(--gallery2);font-size:14px;flex-shrink:0;margin-top:1px}
+.visitor-flow{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.flow-title{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:12px}
+.flow-steps{display:flex;flex-direction:column;gap:0}
+.flow-step{display:flex;gap:12px;padding:10px 0;position:relative}
+.flow-step:not(:last-child)::after{content:'';position:absolute;left:17px;top:38px;bottom:-10px;width:2px;background:var(--border2)}
+.flow-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;border:1px solid var(--border2);background:var(--bg3);z-index:1}
+.flow-icon.active-flow{background:linear-gradient(135deg,var(--gallery1),var(--gallery2));border-color:transparent}
+.flow-text{flex:1;padding-top:6px}
+.flow-text-title{font-size:13px;font-weight:600;color:var(--txt1);margin-bottom:2px}
+.flow-text-sub{font-size:11px;color:var(--txt2)}
+/* FIX #2: Save buttons - clear destination shown */
+.save-to-wallet-btn{width:100%;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;border-radius:var(--r);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;margin-bottom:8px}
+.save-to-wallet-btn:active{opacity:.8}
+.voice-narr-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s}
+.voice-narr-btn:active{background:var(--bg2)}
+.wallet-saved-badge{background:var(--local-dim);border:1px solid var(--local);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--local);display:none;align-items:center;gap:8px;margin-top:8px}
+.wallet-saved-badge.show{display:flex}
+
+/* leaderboard */
+#view-leaderboard{padding:24px 20px;gap:0}
+.lb-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--txt1);text-align:center;margin-bottom:6px}
+.lb-sub{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--txt3);text-align:center;margin-bottom:20px}
+.my-score-card{background:var(--gold);border-radius:var(--r);padding:18px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.my-score-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(0,0,0,.5);margin-bottom:4px}
+.my-score-val{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:#000}
+.lb-list{display:flex;flex-direction:column;gap:8px;padding-bottom:20px}
+.lb-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:13px 16px;display:flex;align-items:center;gap:14px;transition:border-color .2s}
+.lb-row.me{background:var(--bg3);border-color:var(--border2);border-left:3px solid var(--gold)}
+.lb-medal{width:24px;text-align:center;font-size:14px;flex-shrink:0}
+.lb-name{flex:1;font-size:14px;font-weight:500;color:var(--txt2)}
+.lb-row.me .lb-name{color:var(--txt1)}
+.lb-score{font-family:'DM Mono',monospace;font-size:13px;color:var(--txt2)}
+.lb-row.gold-rank .lb-score{color:var(--gold)}
+
+/* rewards */
+#view-rewards{padding:24px 20px;gap:0}
+.rw-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--txt1);text-align:center;margin-bottom:6px}
+.rw-sub{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--txt3);text-align:center;margin-bottom:20px}
+.wallet-empty{border:1.5px dashed var(--border);border-radius:20px;padding:32px;text-align:center;margin-top:16px}
+.wallet-empty-icon{font-size:36px;opacity:.4;margin-bottom:12px}
+.wallet-empty-title{font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:6px}
+.wallet-empty-desc{font-size:12px;color:var(--txt3);line-height:1.6}
+.coupon-card{border-radius:var(--r);border:1px solid;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;animation:fadeUp .3s ease both}
+.coupon-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px}
+.coupon-card.local-coupon{border-color:rgba(61,203,127,.4);background:var(--local-dim)}
+.coupon-card.local-coupon::before{background:var(--local)}
+.coupon-card.gold-coupon{border-color:rgba(201,168,76,.4);background:var(--gold-dim)}
+.coupon-card.gold-coupon::before{background:var(--gold)}
+.coupon-card.gallery-coupon{border-color:rgba(196,152,42,.4);background:rgba(139,105,20,.15)}
+.coupon-card.gallery-coupon::before{background:var(--gallery2)}
+.coupon-tag{position:absolute;top:12px;right:12px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px}
+.coupon-card.local-coupon .coupon-tag{background:var(--local-dim);color:var(--local)}
+.coupon-card.gold-coupon .coupon-tag{background:var(--gold-dim);color:var(--gold)}
+.coupon-card.gallery-coupon .coupon-tag{background:rgba(196,152,42,.2);color:var(--gallery2)}
+.coupon-from{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.coupon-card.local-coupon .coupon-from{color:var(--local)}
+.coupon-card.gold-coupon .coupon-from{color:var(--gold)}
+.coupon-card.gallery-coupon .coupon-from{color:var(--gallery2)}
+.coupon-name{font-size:16px;font-weight:600;color:var(--txt1);margin-bottom:14px;padding-right:60px}
+.coupon-btn{background:rgba(0,0,0,.3);border:none;color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:10px 16px;border-radius:var(--rs);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background .2s}
+.coupon-btn:active{background:rgba(0,0,0,.5)}
+
+/* Leaflet override for dark mode */
+.leaflet-container{background:#1a1e24!important}
+.leaflet-tile{filter:brightness(.85) saturate(.9)!important}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="overlay" id="overlay" onclick="closeModal()"></div>
+  <div class="modal" id="modal">
+    <div class="modal-icon" id="modal-icon">⚠</div>
+    <h3 id="modal-title">오답입니다</h3>
+    <p id="modal-msg">주변 건축물을 다시 관찰해보세요!</p>
+    <button class="modal-btn" onclick="closeModal()">다시 시도하기</button>
+  </div>
+
+  <!-- header -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <button class="hdr-btn" id="hdr-left-btn" onclick="hdrLeft()">
+        <svg id="icon-menu" width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <svg id="icon-back" width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+    </div>
+    <div class="hdr-title" id="hdr-title">All Tours</div>
+    <div class="hdr-right">
+      <div class="timer-badge" id="timer-badge">
+        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"/></svg>
+        <span id="timer-text">45:00</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- home -->
+    <div class="view active" id="view-home" style="padding:24px 20px">
+      <div class="home-eyebrow">Independent Tours</div>
+      <h2 class="home-title">Explore<br>Our Tours</h2>
+      <div class="tour-card featured" onclick="selectTour()">
+        <img class="tour-img" src="https://picsum.photos/id/1018/800/600" alt="">
+        <div class="tour-overlay"></div>
+        <div class="tour-info">
+          <div class="tour-badge" style="background:linear-gradient(90deg, var(--gemini1), var(--gemini2));color:#fff">Gemini AI + AR</div>
+          <div class="tour-name">Cotswolds Hidden Quest</div>
+          <div class="tour-sub">5 Spots · AI Guide &amp; Local Rewards</div>
+        </div>
+      </div>
+      <div class="tour-card featured" onclick="openGallery()" style="margin-bottom:14px;border-color:rgba(196,152,42,.4)">
+        <img class="tour-img" src="https://picsum.photos/id/1060/800/600" alt="" style="opacity:.7">
+        <div class="tour-overlay"></div>
+        <div class="tour-info">
+          <div class="tour-badge" style="background:linear-gradient(90deg,var(--gallery1),var(--gallery2));color:#fff">AI Artwork Scanner</div>
+          <div class="tour-name">National Gallery</div>
+          <div class="tour-sub">28 Masterworks · Gemini Visual AI Guide</div>
+        </div>
+      </div>
+      <div class="tour-card locked">
+        <img class="tour-img" src="https://picsum.photos/id/1032/800/600" alt="" style="filter:grayscale(1)">
+        <div class="tour-overlay"></div>
+        <div class="tour-locked-inner">
+          <div class="tour-name" style="font-size:16px">London Royal Walk</div>
+          <div class="coming-pill">Coming Soon</div>
+        </div>
+      </div>
+      <div class="tour-card locked" style="margin-bottom:24px">
+        <img class="tour-img" src="https://picsum.photos/id/1040/800/600" alt="" style="filter:grayscale(1)">
+        <div class="tour-overlay"></div>
+        <div class="tour-locked-inner">
+          <div class="tour-name" style="font-size:16px">Edinburgh Mystery Tour</div>
+          <div class="coming-pill">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- tour list (Cotswolds) -->
+    <div class="view" id="view-tour" style="padding:24px 20px">
+      <div class="list-eyebrow">AI Audio &amp; AR Tour</div>
+      <h2 class="list-title">Cotswolds<br>Hidden Quest</h2>
+      <p class="list-desc">Gemini AI의 실시간 시각 분석 해설을 경험하며 숨겨진 스폿을 탐색하세요. 돌발 퀘스트를 완료하면 특별 리워드가 지급됩니다.</p>
+      <div id="spot-list"></div>
+    </div>
+
+    <!-- map — Leaflet real map FIX #4 -->
+    <div class="view" id="view-map" style="position:relative;overflow:hidden">
+      <div id="leaflet-map" style="position:absolute;inset:0;z-index:1"></div>
+      <div class="map-guide" id="map-guide">
+        <div class="guide-icon">🧭</div>
+        <div class="guide-text" id="guide-text">AR 탐색 모드로 이동하세요</div>
+      </div>
+      <button class="map-ar-btn" onclick="goToScan()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        주변 AR 실시간 탐색하기
+      </button>
+    </div>
+
+    <!-- ar scan -->
+    <div class="view" id="view-ar-scan">
+      <div class="ar-bg"></div>
+      <div class="ar-center" id="ar-center">
+        <div class="radar-wrap">
+          <div class="radar-ring"></div><div class="radar-ring"></div><div class="radar-ring"></div>
+          <div class="radar-cross"></div><div class="radar-sweep"></div><div class="radar-center"></div>
+        </div>
+        <div class="ar-status" id="ar-status">GPS 기반 주변 환경 탐색 중...</div>
+      </div>
+      <div class="ar-panel" id="ar-panel">
+        <div class="ar-card">
+          <div class="ar-card-hdr">
+            <div class="ar-card-icon" id="ar-icon">🎯</div>
+            <div>
+              <div class="ar-card-type" id="ar-type">Quest Detected</div>
+              <div class="ar-card-title" id="ar-card-title">스폿 발견!</div>
+            </div>
+          </div>
+          <div class="ar-card-desc" id="ar-desc">미션을 수행하고 점수를 획득하세요.</div>
+          <button class="ar-cta" id="ar-cta" onclick="startQuest()">미션 시작하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- quest -->
+    <div class="view" id="view-quest" style="padding:24px 20px;position:relative">
+      <div class="quest-bg" id="quest-bg"></div>
+      <div class="quest-content">
+        <div class="quest-hdr">
+          <div class="quest-status-badge" id="q-badge">Live Mission</div>
+          <div class="quest-pts-badge" id="q-pts">+150 PTS</div>
+        </div>
+        <div class="quest-body">
+          <div id="quest-inner" style="width:100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- audio player — FIX #3: always shows controls -->
+    <div class="view" id="view-player">
+      <div class="player-hero">
+        <img id="p-img" src="" alt="">
+        <div class="player-hero-overlay"></div>
+        <div class="camera-flash" id="camera-flash"></div>
+        <div class="camera-scan-line" id="camera-scan-line"></div>
+        <div class="player-hero-info">
+          <div class="player-tag" id="p-tag">Gemini AI Guide</div>
+          <div class="player-title" id="p-title">Title</div>
+        </div>
+      </div>
+      <div class="gemini-init" id="gemini-init">
+        <div class="gemini-init-icon">✨</div>
+        <h3>AI 시각 분석 가이드</h3>
+        <p>Gemini가 현재 스폿의 시각적 요소를 분석하여<br>맞춤형 해설과 질문을 생성합니다.</p>
+        <button class="btn-gemini" onclick="runGeminiAnalysis()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+          스냅샷 촬영 및 분석
+        </button>
+      </div>
+      <div class="gemini-loading" id="gemini-loading">
+        <div class="gemini-spinner"></div>
+        <p>Gemini AI가 시각 요소를 분석 중입니다...</p>
+      </div>
+      <div class="gemini-result" id="gemini-result">
+        <!-- FIX #3: Player controls now at top, always visible -->
+        <div class="player-controls">
+          <div class="player-now-label">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 8l6 4-6 4V8z" fill="currentColor"/></svg>
+            <span id="p-now-title">AI 해설 재생 중</span>
+          </div>
+          <div class="player-progress">
+            <span class="prog-time" id="p-curr">00:00</span>
+            <div class="prog-track" id="prog-track" onclick="seekAudio(event)">
+              <div class="prog-fill" id="prog-fill"></div>
+              <div class="prog-dot" id="prog-dot" style="left:0%"></div>
+            </div>
+            <span class="prog-time" style="text-align:right" id="p-total">02:15</span>
+          </div>
+          <div class="player-btns">
+            <button class="p-btn" onclick="rewindAudio()" title="15초 뒤로">
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/><text x="9" y="16" font-size="5" fill="currentColor">15</text></svg>
+            </button>
+            <button class="p-play" id="p-play-btn" onclick="togglePlay()">
+              <svg id="p-play-icon" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="p-pause-icon" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="p-btn" onclick="forwardAudio()" title="15초 앞으로">
+              <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6v4l5-5-5-5v4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8h-2z"/><text x="9" y="16" font-size="5" fill="currentColor">15</text></svg>
+            </button>
+          </div>
+        </div>
+        <div class="player-body">
+          <div class="transcript-box">
+            <div class="transcript-lbl">✨ Gemini Transcript</div>
+            <p class="transcript" id="p-transcript"></p>
+          </div>
+          <div class="qa-title">AI가 생성한 심화 질문</div>
+          <div class="qa-list" id="p-qa-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NATIONAL GALLERY -->
+    <div class="view" id="view-gallery">
+      <div class="gallery-hero">
+        <img class="gallery-hero-img" src="https://picsum.photos/id/1060/800/400" alt="">
+        <div class="gallery-hero-overlay"></div>
+        <div class="gallery-hero-info">
+          <div class="gallery-hero-badge">AI Artwork Scanner</div>
+          <div class="gallery-hero-title">National Gallery</div>
+          <div class="gallery-hero-sub">Trafalgar Square, London · Room 1–46</div>
+        </div>
+      </div>
+      <button class="gallery-scan-btn" onclick="openGalleryScan()" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));border:none;border-radius:var(--r);padding:16px 20px;margin:12px 20px;width:calc(100% - 40px);cursor:pointer;transition:opacity .2s">
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📷</div>
+        <div style="text-align:left;flex:1">
+          <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:2px">작품 스캔하기</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.65)">카메라로 작품을 촬영하면 Gemini가 즉시 분석합니다</div>
+        </div>
+        <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,.7)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <div class="gallery-rooms" id="gallery-rooms"></div>
+    </div>
+
+    <!-- Gallery artwork detail — FIX #1 #2 -->
+    <div class="view" id="view-artwork">
+      <div class="artwork-hero">
+        <img id="aw-img" src="" alt="">
+        <div class="artwork-hero-overlay"></div>
+        <div class="artwork-hero-info">
+          <div class="artwork-tag" id="aw-tag">Gemini AI Analysis</div>
+          <div class="artwork-hero-title" id="aw-title">Title</div>
+          <div class="artwork-hero-artist" id="aw-artist">Artist · Year</div>
+        </div>
+      </div>
+      <!-- State: Loading (auto-starts) -->
+      <div class="artwork-loading" id="aw-loading">
+        <div class="gallery-spinner"></div>
+        <div class="artwork-loading-steps" id="aw-loading-steps">
+          <div class="loading-step" id="lstep-0"><div class="loading-step-icon">📷</div>이미지 캡처 완료</div>
+          <div class="loading-step" id="lstep-1"><div class="loading-step-icon">🔍</div>시각적 요소 분석 중</div>
+          <div class="loading-step" id="lstep-2"><div class="loading-step-icon">🎨</div>화풍 및 기법 식별 중</div>
+          <div class="loading-step" id="lstep-3"><div class="loading-step-icon">📚</div>역사적 맥락 조회 중</div>
+          <div class="loading-step" id="lstep-4"><div class="loading-step-icon">✨</div>맞춤형 해설 생성 중</div>
+        </div>
+      </div>
+      <!-- State: Result -->
+      <div class="artwork-result" id="aw-result">
+        <div class="artwork-analysis-bar" id="aw-tabs"></div>
+        <div class="artwork-body" id="aw-body"></div>
+      </div>
+    </div>
+
+    <!-- Gallery scan — FIX #1: no re-scan, opens artwork detail directly -->
+    <div class="view" id="view-gallery-scan">
+      <div class="gallery-scan-bg"></div>
+      <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:0">
+        <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--gallery2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px">Gemini Vision Active</div>
+        <div class="gallery-scan-frame">
+          <div class="scan-corner tl"></div><div class="scan-corner tr"></div>
+          <div class="scan-corner bl"></div><div class="scan-corner br"></div>
+          <div class="gallery-scan-center"></div>
+          <div class="gallery-scan-sweeper"></div>
+        </div>
+        <div class="gallery-scan-info">
+          <div class="gallery-scan-status" id="gscan-status">작품을 프레임 안에 맞춰주세요</div>
+          <div class="gallery-scan-hint">카메라가 자동으로 작품을 인식합니다</div>
+        </div>
+      </div>
+      <!-- FIX #1: recognized → auto open artwork detail (no intermediate panel with re-scan) -->
+      <div class="gallery-scan-panel" id="gscan-panel">
+        <div class="ar-card" style="border-color:rgba(196,152,42,.4)">
+          <div class="ar-card-hdr">
+            <div class="ar-card-icon" style="background:linear-gradient(135deg,var(--gallery1),var(--gallery2));font-size:18px">🎨</div>
+            <div>
+              <div class="ar-card-type" style="color:var(--gallery2)">Artwork Identified</div>
+              <div class="ar-card-title" id="gscan-title">작품 인식됨!</div>
+            </div>
+          </div>
+          <div class="ar-card-desc" id="gscan-desc">AI 해설을 불러오는 중...</div>
+          <button class="ar-cta" style="background:linear-gradient(135deg,var(--gallery1),var(--gallery2));color:#fff" onclick="openScannedArtwork()">AI 해설 바로 보기 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- leaderboard -->
+    <div class="view" id="view-leaderboard" style="padding:24px 20px">
+      <div class="lb-title">Live Ranking</div>
+      <div class="lb-sub">Top scorer gets the ultimate reward</div>
+      <div class="my-score-card">
+        <div><div class="my-score-label">My Score</div><div class="my-score-val" id="my-score">0 PTS</div></div>
+        <div style="text-align:right"><div class="my-score-label">Rank</div><div class="my-score-val" id="my-rank">—</div></div>
+      </div>
+      <div class="lb-list" id="lb-list"></div>
+    </div>
+
+    <!-- rewards -->
+    <div class="view" id="view-rewards" style="padding:24px 20px">
+      <div class="rw-title">My Wallet</div>
+      <div class="rw-sub">Earned Coupons &amp; Art Notes</div>
+      <div class="wallet-empty" id="wallet-empty">
+        <div class="wallet-empty-icon">🎟</div>
+        <div class="wallet-empty-title">아직 획득한 리워드가 없습니다</div>
+        <div class="wallet-empty-desc">AR 탐색으로 로컬 제휴 스폿을 찾거나<br>내셔널 갤러리 AI 해설을 저장해보세요</div>
+      </div>
+      <div id="wallet-list"></div>
+    </div>
+
+    <!-- side menu -->
+    <div class="side-menu" id="side-menu">
+      <div class="menu-hdr">
+        <div class="menu-title">Menu</div>
+        <button class="hdr-btn" onclick="toggleMenu()">
+          <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="menu-body">
+        <div class="menu-item" onclick="toggleMenu();showView('home')">모든 투어 코스 보기<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+        <div class="menu-item highlight" onclick="toggleMenu();openGallery()">🎨 National Gallery AI Guide<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+        <div class="menu-item" onclick="toggleMenu()">오프라인 데이터 저장</div>
+        <div class="menu-item" onclick="toggleMenu()">다국어 설정 (EN / KO)</div>
+        <div class="menu-item" onclick="toggleMenu()">여행사 문의하기</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tab bar -->
+  <div class="tabbar" id="tabbar">
+    <button class="tab-btn" id="tab-tour" onclick="switchTab('tour')">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+      <span class="tab-label">리스트</span>
+    </button>
+    <button class="tab-btn" id="tab-map" onclick="switchTab('map');initMap()">
+      <svg viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+      <span class="tab-label">지도/AR</span>
+    </button>
+    <button class="tab-btn" id="tab-gallery" onclick="switchTab('gallery')">
+      <svg viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <span class="tab-label">갤러리</span>
+    </button>
+    <button class="tab-btn" id="tab-leaderboard" onclick="switchTab('leaderboard');updateLB()">
+      <svg viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <span class="tab-label">랭킹</span>
+    </button>
+    <button class="tab-btn" id="tab-rewards" onclick="switchTab('rewards')">
+      <svg viewBox="0 0 24 24"><path d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+      <span class="tab-label">지갑</span>
+    </button>
+  </div>
+</div>
+
+<script>
+/* ─── COTSWOLDS DATA ─── */
+const spots=[
+  {id:1,type:'Audio',title:'Arlington Row',sub:'14세기의 양모 상점들',img:'https://picsum.photos/id/1015/800/600',
+   transcript:'현재 보시는 허니컬러의 석조 오두막들은 1380년경 수도원의 양모 창고로 지어졌습니다. 시각 분석 결과, 코츠월드 라임스톤의 질감이 뚜렷하게 관찰되며 급격한 지붕 경사는 당시의 독특한 건축 기술을 보여줍니다.',
+   qa:[{q:'지붕 타일은 어떻게 만들었나요?',a:'현지에서 채굴한 라임스톤 원석을 겨울철 서리에 노출시켜 자연스럽게 얇게 쪼개지는 방식을 활용해 제작했습니다.'},{q:'창문이 왜 이렇게 작나요?',a:'14세기 당시 유리가 매우 비싼 사치품이었으며, 혹독한 겨울 추위를 막기 위해 창문의 크기를 최소화했습니다.'},{q:'현재도 사람이 살고 있나요?',a:'네, 영국의 문화유산 보호단체인 내셔널 트러스트(National Trust)가 관리하며 실제 주민들이 거주하고 있습니다.'}],
+   lat:51.7709,lng:-1.8337},
+  {id:2,type:'Audio',title:'Rack Isle',sub:'마을 중심의 생태 보호 구역',img:'https://picsum.photos/id/1038/800/600',
+   transcript:'랙 아일입니다. 과거에는 양모를 세척하고 말리던 장소였지만, 화면 분석 결과 현재는 다양한 수생 식물과 백조가 서식하는 아름다운 생태 보호 구역으로 보존되고 있습니다.',
+   qa:[{q:'섬 이름이 왜 Rack Isle인가요?',a:"과거 직조공들이 물에 씻은 양모를 말리기 위해 설치했던 목재 건조대(Rack)에서 유래한 이름입니다."},{q:'어떤 동물들을 볼 수 있나요?',a:'계절에 따라 야생 오리, 백조, 물총새 등 다양한 조류와 수생태계 생물들을 관찰할 수 있습니다.'},{q:'물이 유난히 맑은 이유는?',a:'석회암 지대를 통과하며 자연 여과된 물이 콜른 강으로 흘러들어오기 때문에 맑고 투명한 수질을 유지합니다.'}],
+   lat:51.7715,lng:-1.8310},
+  {id:3,type:'Quest_Quiz',title:'건축 양식의 비밀',sub:'현장 관찰 퀴즈',pts:100,lat:51.7700,lng:-1.8330,q:'방금 지나온 건물 문 위쪽에 새겨진 연도는?',opts:['A. 1380년','B. 1645년','C. 1820년'],ans:1,bg:'https://picsum.photos/id/1044/800/600'},
+  {id:4,type:'Quest_Action',title:'오래된 문양 복원하기',sub:'연타 액션 미션',pts:150,lat:51.7695,lng:-1.8305,q:'석조 문양에 이끼가 끼어 있습니다. 버튼을 빠르게 15번 연타하여 이끼를 제거하세요!',bg:'https://picsum.photos/id/1060/800/600'},
+  {id:5,type:'Quest_Local',title:'Arlington Tea Room',sub:'로컬 제휴 이벤트',pts:200,lat:51.7690,lng:-1.8345,q:'로컬 제휴 스폿입니다! 찻집 간판을 스캔하면 무료 쿠폰이 발급됩니다.',bg:'https://picsum.photos/id/1068/800/600'}
+];
+
+/* ─── NATIONAL GALLERY DATA ─── */
+const artworkRooms=[
+  {room:'Room 2 — Early Italian Paintings',artworks:[
+    {id:'ng1',title:'The Arnolfini Portrait',artist:'Jan van Eyck',year:'1434',room:'Room 2',medium:'Oil on oak panel',img:'https://picsum.photos/id/1025/400/500',
+     analysis:{overview:'화면 분석 결과, 이 작품은 플랑드르 유화 기법의 정점을 보여줍니다. 거울에 반사된 화면 너머의 두 인물은 van Eyck의 경이로운 사실주의를 증명하며, 방 안 가득한 상징들은 중세 결혼 의식의 암호문 같은 역할을 합니다.',technique:'Van Eyck는 오일 글레이징(Oil Glazing) 기법을 겹쳐 도포하여 섬유와 모피의 질감을 극사실적으로 묘사했습니다. 샹들리에의 촛불 하나는 하나님의 임재를 상징합니다.',context:'이 그림은 이탈리아 상인 조반니 아르놀피니와 그의 아내를 그린 것으로, 당시로는 혁신적인 실내 초상화 형식입니다.',meta:{시대:'15세기 초기 플랑드르',기법:'오일 글레이징',크기:'82.2 × 60 cm'},
+     qa:[{q:'거울 속 두 인물은 누구인가요?',a:'거울에는 그림 속 부부 외에 두 명의 증인이 반사되어 있으며, 그 중 한 명은 화가 van Eyck 본인으로 추정됩니다.'},{q:'강아지는 무엇을 상징하나요?',a:'발 아래의 작은 강아지는 충실함과 부부간의 신의를 상징하는 중세 회화의 일반적인 상징물입니다.'},{q:'이 그림이 혁신적인 이유는?',a:'이전까지 종교화 위주였던 유럽 회화에서 처음으로 평범한 세속인을 주인공으로 한 실내 초상화라는 점에서 미술사적 혁신으로 평가됩니다.'}]}},
+    {id:'ng2',title:'Sunflowers',artist:'Vincent van Gogh',year:'1888',room:'Room 43',medium:'Oil on canvas',img:'https://picsum.photos/id/145/400/500',
+     analysis:{overview:'화면 분석 결과, van Gogh의 독특한 임파스토 기법이 선명하게 드러납니다. 두껍게 쌓인 물감 질감은 해바라기의 생동감을 3차원적으로 표현합니다.',technique:'임파스토(Impasto) 기법을 사용하여 물감을 두껍게 발라 빛과 그림자를 질감으로 표현했습니다.',context:'아를에서 고갱을 맞이하기 위해 그린 작품으로, van Gogh는 황색을 "사랑과 우정의 색"으로 표현했습니다.',meta:{시대:'후기 인상주의',기법:'임파스토',크기:'92.1 × 73 cm'},
+     qa:[{q:'해바라기가 11송이인 이유는?',a:'Van Gogh는 고갱의 방을 장식하기 위해 총 4점의 해바라기 시리즈를 그렸으며, 각각 다른 숫자의 꽃을 담았습니다.'},{q:'왜 이 노란색이 독특한가요?',a:'Van Gogh는 당시 새로 개발된 합성 황색 크롬 안료를 사용했는데, 이 안료는 시간이 지나며 점차 어두워지는 특성이 있습니다.'},{q:'원작이 여러 개인가요?',a:'네, van Gogh는 해바라기를 주제로 총 5점을 그렸으며, 런던 내셔널 갤러리 작품은 가장 유명한 버전입니다.'}]}}
+  ]},
+  {room:'Room 34 — 17th Century Dutch',artworks:[
+    {id:'ng3',title:'The Fighting Temeraire',artist:'J.M.W. Turner',year:'1839',room:'Room 34',medium:'Oil on canvas',img:'https://picsum.photos/id/155/400/500',
+     analysis:{overview:'시각 분석 결과, 터너의 빛 표현이 이 작품의 핵심입니다. 지는 해의 따뜻한 황금빛과 차가운 증기선의 연기가 대비를 이루며, 범선 시대의 종말과 산업혁명의 시작을 시적으로 묘사합니다.',technique:'터너는 물과 하늘의 경계를 의도적으로 흐릿하게 처리하는 "Atmospheric Perspective" 기법으로 시간의 흐름과 덧없음을 시각화했습니다.',context:'넬슨 제독의 트라팔가르 해전에서 활약했던 전함 테메레르가 해체를 위해 끌려가는 마지막 항해를 담은 작품입니다.',meta:{시대:'낭만주의',기법:'대기원근법',크기:'90.7 × 121.6 cm'},
+     qa:[{q:'증기선은 왜 작게 그렸나요?',a:'상대적으로 작고 검게 그려진 증기선은 새로운 산업 시대를 상징하며, 이미 지나가는 시대인 범선보다 덜 영광스럽게 표현했습니다.'},{q:'이 그림이 "영국인이 가장 사랑하는 그림"인가요?',a:"네, 2005년 BBC 여론조사에서 영국인이 가장 사랑하는 그림으로 선정되었습니다."},{q:'테메레르 호는 실제로 존재했나요?',a:'네, 98문 전열함으로 1805년 트라팔가르 해전에서 넬슨 제독의 기함 빅토리 호를 호위한 실제 역사적 함선입니다.'}]}}
+  ]}
+];
+
+/* ─── STATE ─── */
+let myScore=0,timeLeft=45*60,currentSpot=null,currentArtwork=null,tapCnt=0,audioInt=null,isPlaying=false,audioProgress=0,leafletMap=null,mapInited=false;
+let viewStack=['home'];
+const lbOthers=[{name:'John D.',score:450},{name:'Emma W.',score:320},{name:'Carlos M.',score:200}];
+const titles={home:'All Tours',tour:'Tour List',map:'Map & AR','ar-scan':'AR Explore',quest:'Live Mission',player:'Gemini AI Guide',gallery:'National Gallery',artwork:'AI Art Analysis','gallery-scan':'Artwork Scanner',leaderboard:'Leaderboard',rewards:'My Wallet'};
+
+function init(){buildSpotList();buildGallery();updateLB();startTimer();}
+
+/* ─── COTSWOLDS ─── */
+function buildSpotList(){
+  const c=document.getElementById('spot-list');
+  spots.forEach(s=>{
+    const isQ=s.type.includes('Quest'),isL=s.type==='Quest_Local';
+    const cls=isL?'local-card':isQ?'quest-card':'';
+    const badge=isL?'<span class="spot-badge local">Local Event</span>':isQ?'<span class="spot-badge quest">AR Quest</span>':'<span class="spot-badge audio">✨ AI Guide</span>';
+    const pts=isQ?`<div class="spot-pts">+${s.pts} PTS</div>`:'';
+    const click=isQ?`guideToQuest(${s.id})`:`openAudio(${s.id})`;
+    c.innerHTML+=`<div class="spot-card ${cls}" onclick="${click}"><div class="spot-left">${badge}<div class="spot-title">${s.title}</div><div class="spot-sub">${s.sub}</div>${pts}</div><div class="spot-arrow"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div></div>`;
+  });
+}
+
+/* ─── NATIONAL GALLERY ─── */
+function buildGallery(){
+  const c=document.getElementById('gallery-rooms');
+  artworkRooms.forEach(room=>{
+    c.innerHTML+=`<div class="gallery-room-title">${room.room}</div>`;
+    room.artworks.forEach(aw=>{
+      c.innerHTML+=`<div class="artwork-card" onclick="openArtwork('${aw.id}')">
+        <div class="artwork-thumb"><img src="${aw.img}" alt=""></div>
+        <div class="artwork-info">
+          <div class="artwork-badge">✨ AI Ready</div>
+          <div class="artwork-title">${aw.title}</div>
+          <div class="artwork-artist">${aw.artist}</div>
+          <div class="artwork-year">${aw.year} · ${aw.medium}</div>
+        </div>
+        <div class="artwork-arrow"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></div>
+      </div>`;
+    });
+  });
+}
+
+function openGallery(){
+  viewStack=['home','gallery'];
+  showView('gallery');
+  document.getElementById('timer-badge').classList.add('show');
+}
+
+/* FIX #1: openArtwork auto-starts loading (no init scan screen) */
+function openArtwork(id){
+  const allArtworks=artworkRooms.flatMap(r=>r.artworks);
+  currentArtwork=allArtworks.find(a=>a.id===id);
+  if(!currentArtwork) return;
+  document.getElementById('aw-img').src=currentArtwork.img;
+  document.getElementById('aw-title').textContent=currentArtwork.title;
+  document.getElementById('aw-artist').textContent=currentArtwork.artist+' · '+currentArtwork.year;
+  // reset — go straight to loading, skip init
+  document.getElementById('aw-loading').style.display='flex';
+  document.getElementById('aw-result').style.display='none';
+  // reset steps
+  document.querySelectorAll('.loading-step').forEach(s=>{s.classList.remove('active','done');});
+  viewStack.push('artwork');
+  showView('artwork');
+  // auto start analysis
+  runArtworkAnalysis();
+}
+
+function runArtworkAnalysis(){
+  const steps=document.querySelectorAll('.loading-step');
+  let i=0;
+  const stepInt=setInterval(()=>{
+    if(i>0){steps[i-1].classList.remove('active');steps[i-1].classList.add('done');}
+    if(i<steps.length){steps[i].classList.add('active');i++;}
+    else{clearInterval(stepInt);showArtworkResult();}
+  },500);
+}
+
+function showArtworkResult(){
+  document.getElementById('aw-loading').style.display='none';
+  document.getElementById('aw-result').style.display='flex';
+  const tabs=['해설','기법','맥락','AI 질문','관람 플로우'];
+  const tabsEl=document.getElementById('aw-tabs');
+  tabsEl.innerHTML=tabs.map((t,i)=>`<div class="analysis-pill ${i===0?'active-pill':''}" onclick="switchArtTab(${i})" id="atab-${i}">${t}</div>`).join('');
+  renderArtTab(0);
+}
+
+function switchArtTab(idx){
+  document.querySelectorAll('.analysis-pill').forEach((p,i)=>{p.classList.toggle('active-pill',i===idx)});
+  renderArtTab(idx);
+}
+
+function renderArtTab(idx){
+  const aw=currentArtwork;const a=aw.analysis;
+  const body=document.getElementById('aw-body');
+  if(idx===0){
+    const metaChips=Object.entries(a.meta).map(([k,v])=>`<div class="artwork-meta-chip"><div class="meta-chip-label">${k}</div><div class="meta-chip-val">${v}</div></div>`).join('');
+    /* FIX #2: Save button clearly says "지갑에 저장" with wallet icon */
+    body.innerHTML=`<div class="artwork-meta-row">${metaChips}</div>
+    <div class="insight-box"><div class="insight-lbl">✨ Gemini 시각 분석</div><p class="insight-txt">${a.overview}</p></div>
+    <button class="voice-narr-btn" onclick="startVoiceNarration('${aw.id}')">🔊 음성 해설 듣기</button>
+    <div style="height:8px"></div>
+    <button class="save-to-wallet-btn" onclick="saveArtworkToWallet('${aw.id}')">🎟 지갑에 저장 — 지갑(하단 탭)에서 확인</button>
+    <div class="wallet-saved-badge" id="saved-badge-${aw.id}">✅ 지갑에 저장되었습니다 — 하단 <strong>지갑 탭</strong>에서 확인하세요</div>`;
+  } else if(idx===1){
+    body.innerHTML=`<div class="insight-box"><div class="insight-lbl">🎨 기법 분석</div><p class="insight-txt">${a.technique}</p></div>`;
+  } else if(idx===2){
+    body.innerHTML=`<div class="insight-box"><div class="insight-lbl">📚 역사적 맥락</div><p class="insight-txt">${a.context}</p></div>`;
+  } else if(idx===3){
+    const qaHtml=a.qa.map((q,i)=>`<button class="deep-q-btn" onclick="showArtAnswer(${i})"><div class="deep-q-icon">✨</div><div>${q.q}</div></button>`).join('');
+    body.innerHTML=`<div class="deep-q-title">Gemini가 생성한 심화 질문</div><div class="deep-q-list">${qaHtml}</div><div id="art-answer-box" style="display:none" class="insight-box"><div class="insight-lbl">💡 AI 답변</div><p class="insight-txt" id="art-answer-txt"></p></div>`;
+  } else if(idx===4){
+    /* FIX #2: Save button explicitly describes destination */
+    body.innerHTML=`<div class="visitor-flow"><div class="flow-title">맞춤형 관람 플로우</div><div class="flow-steps">
+      <div class="flow-step"><div class="flow-icon active-flow">📷</div><div class="flow-text"><div class="flow-text-title">작품 첫 인상 기록</div><div class="flow-text-sub">촬영 후 AI가 즉시 분석</div></div></div>
+      <div class="flow-step"><div class="flow-icon active-flow">🔍</div><div class="flow-text"><div class="flow-text-title">세부 요소 탐구</div><div class="flow-text-sub">기법·색채·구도 딥다이브</div></div></div>
+      <div class="flow-step"><div class="flow-icon active-flow">💬</div><div class="flow-text"><div class="flow-text-title">AI와 대화</div><div class="flow-text-sub">궁금한 점을 자유롭게 질문</div></div></div>
+      <div class="flow-step"><div class="flow-icon">⭐</div><div class="flow-text"><div class="flow-text-title">나만의 아트 노트 저장</div><div class="flow-text-sub">분석 결과를 지갑 탭에 보관</div></div></div>
+    </div></div>
+    <button class="save-to-wallet-btn" onclick="saveArtworkToWallet('${aw.id}')">🎟 관람 기록 지갑에 저장하기</button>
+    <div class="wallet-saved-badge" id="saved-badge-flow-${aw.id}">✅ 지갑에 저장되었습니다 — 하단 <strong>지갑 탭</strong>에서 확인하세요</div>`;
+  }
+}
+
+function showArtAnswer(idx){
+  const a=currentArtwork.analysis.qa[idx];
+  document.getElementById('art-answer-box').style.display='block';
+  document.getElementById('art-answer-txt').textContent=a.a;
+}
+
+/* FIX #2: Save to wallet function */
+function saveArtworkToWallet(id){
+  const aw=currentArtwork||artworkRooms.flatMap(r=>r.artworks).find(a=>a.id===id);
+  if(!aw) return;
+  // Show badge inline
+  const badges=document.querySelectorAll(`[id^="saved-badge"]`);
+  badges.forEach(b=>{if(b.id.includes(id)) b.classList.add('show');});
+  // Add to wallet if not already there
+  if(!document.querySelector(`[data-artwork-id="${id}"]`)){
+    document.getElementById('wallet-empty').style.display='none';
+    const wl=document.getElementById('wallet-list');
+    wl.innerHTML+=`<div class="coupon-card gallery-coupon" data-artwork-id="${id}"><div class="coupon-tag">Art Note</div><div class="coupon-from">National Gallery</div><div class="coupon-name">${aw.title}<br><span style="font-size:12px;font-weight:400;color:var(--txt2)">${aw.artist} · ${aw.year}</span></div><button class="coupon-btn" style="background:rgba(196,152,42,.2);border:1px solid var(--gallery2);color:var(--gallery2)" onclick="switchTab('rewards')">지갑에서 보기</button></div>`;
+  }
+}
+
+/* FIX #3: Voice narration opens audio player */
+function startVoiceNarration(id){
+  const aw=artworkRooms.flatMap(r=>r.artworks).find(a=>a.id===id);
+  if(!aw) return;
+  currentSpot={
+    id:'art_'+id,type:'Audio',title:aw.title,img:aw.img,
+    transcript:aw.analysis.overview+' '+aw.analysis.technique,
+    qa:aw.analysis.qa
+  };
+  document.getElementById('p-img').src=aw.img;
+  document.getElementById('p-tag').textContent='Gemini AI Art Guide';
+  document.getElementById('p-title').textContent=aw.title;
+  document.getElementById('gemini-init').style.display='none';
+  document.getElementById('gemini-loading').style.display='none';
+  document.getElementById('gemini-result').style.display='flex';
+  setQaContent(aw.analysis.overview+' '+aw.analysis.technique,aw.title);
+  renderQaButtons(aw.analysis.qa);
+  viewStack.push('player');
+  showView('player');
+  setTimeout(()=>togglePlay(),300);
+}
+
+/* FIX #1: Gallery scan → auto open artwork (no re-scan needed) */
+function openGalleryScan(){
+  viewStack.push('gallery-scan');
+  showView('gallery-scan');
+  runGalleryScanAnim();
+}
+
+function runGalleryScanAnim(){
+  const status=document.getElementById('gscan-status');
+  const panel=document.getElementById('gscan-panel');
+  panel.classList.remove('show');
+  status.textContent='작품을 프레임 안에 맞춰주세요';
+  setTimeout(()=>{status.textContent='작품 인식 중...';},1500);
+  setTimeout(()=>{
+    status.textContent='✓ 작품 식별 완료!';
+    const randomAw=artworkRooms[0].artworks[Math.floor(Math.random()*artworkRooms[0].artworks.length)];
+    document.getElementById('gscan-title').textContent=randomAw.title;
+    document.getElementById('gscan-desc').textContent=`${randomAw.artist} · ${randomAw.year} — AI 해설 준비 완료`;
+    document._scannedArtworkId=randomAw.id;
+    panel.classList.add('show');
+    // FIX #1: auto-proceed after 1.5s (no additional scan step)
+  },3000);
+}
+
+/* FIX #1: Goes directly to result, not back to init scan screen */
+function openScannedArtwork(){
+  const id=document._scannedArtworkId||'ng1';
+  // pop gallery-scan from stack
+  if(viewStack[viewStack.length-1]==='gallery-scan') viewStack.pop();
+  setTimeout(()=>openArtwork(id),50);
+}
+
+/* ─── LEAFLET MAP — FIX #4 ─── */
+function initMap(){
+  if(mapInited) return;
+  mapInited=true;
+  const phoneEl=document.querySelector('.phone');
+  // Bibury, Cotswolds center
+  const map=L.map('leaflet-map',{
+    center:[51.7705,-1.8325],
+    zoom:16,
+    zoomControl:false,
+    attributionControl:false
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    attribution:'© OpenStreetMap © CARTO',
+    subdomains:'abcd',maxZoom:19
+  }).addTo(map);
+  // Attribution
+  L.control.attribution({position:'bottomright',prefix:''}).addTo(map);
+  map.attributionControl.setPrefix('');
+  // User location dot
+  const userIcon=L.divIcon({className:'',html:'<div class="lf-user-pin"></div>',iconSize:[18,18],iconAnchor:[9,9]});
+  L.marker([51.7703,-1.8328],{icon:userIcon}).addTo(map);
+  // Spot markers
+  spots.forEach(s=>{
+    const isQ=s.type.includes('Quest'),isL=s.type==='Quest_Local';
+    const cls=isL?'lf-local-pin':isQ?'lf-quest-pin':'lf-audio-pin';
+    const lbl=isL?'☕':isQ?'Q':'♪';
+    const icon=L.divIcon({className:'',html:`<div class="${cls}" style="display:flex;align-items:center;justify-content:center">${lbl}</div>`,iconSize:[34,34],iconAnchor:[17,17]});
+    const marker=L.marker([s.lat,s.lng],{icon}).addTo(map);
+    const btnCls=isL?'local':isQ?'':'audio';
+    const btnTxt=isQ?'퀘스트 시작':'AI 해설 보기';
+    const fn=isQ?`startARScan(${s.id})`:`openAudio(${s.id})`;
+    marker.bindPopup(`<div class="lf-popup-title">${s.title}</div><div class="lf-popup-sub">${s.sub}</div><button class="lf-popup-btn ${btnCls}" onclick="${fn};document.querySelectorAll('.leaflet-popup-close-button').forEach(b=>b.click())">${btnTxt}</button>`,{maxWidth:220,className:'lf-popup'});
+  });
+  leafletMap=map;
+  setTimeout(()=>map.invalidateSize(),200);
+}
+
+/* ─── VIEW & NAV ─── */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.getElementById('hdr-title').textContent=titles[id]||id;
+  const root=['home','tour','map','gallery','leaderboard','rewards'];
+  document.getElementById('icon-menu').style.display=root.includes(id)?'':'none';
+  document.getElementById('icon-back').style.display=root.includes(id)?'none':'';
+  const tb=document.getElementById('tabbar');
+  tb.className=id==='home'?'tabbar':'tabbar show';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const tab=document.getElementById('tab-'+id);
+  if(tab) tab.classList.add('active');
+  if(id==='map'){initMap();setTimeout(()=>{if(leafletMap)leafletMap.invalidateSize();},100);}
+}
+
+function switchTab(id){
+  viewStack=['home',id];
+  showView(id);
+  if(id!=='home') document.getElementById('timer-badge').classList.add('show');
+}
+
+function selectTour(){viewStack=['home','tour'];showView('tour');document.getElementById('timer-badge').classList.add('show');}
+function hdrLeft(){if(document.getElementById('icon-back').style.display==='none'){toggleMenu();}else{goBack();}}
+function goBack(){if(viewStack.length>1) viewStack.pop();const prev=viewStack[viewStack.length-1];showView(prev);if(isPlaying)togglePlay();}
+function toggleMenu(){document.getElementById('side-menu').classList.toggle('open');}
+
+/* ─── COTSWOLDS QUEST ─── */
+function guideToQuest(id){
+  currentSpot=spots.find(s=>s.id===id);
+  switchTab('map');initMap();
+  const g=document.getElementById('map-guide'),gt=document.getElementById('guide-text');
+  gt.innerHTML=`<strong>'${currentSpot.title}'</strong> 위치로 이동 후 AR 탐색을 실행하세요`;
+  g.classList.add('show');setTimeout(()=>g.classList.remove('show'),3500);
+}
+
+function goToScan(){if(!currentSpot)currentSpot=spots[4];viewStack.push('ar-scan');showView('ar-scan');runScan();}
+function startARScan(id){currentSpot=spots.find(s=>s.id===id);viewStack.push('ar-scan');showView('ar-scan');runScan();}
+
+function runScan(){
+  const panel=document.getElementById('ar-panel'),center=document.getElementById('ar-center'),status=document.getElementById('ar-status');
+  panel.classList.remove('show');center.style.display='flex';
+  const s=currentSpot,isL=s.type==='Quest_Local';
+  status.style.color=isL?'var(--local)':'var(--quest)';
+  status.textContent='GPS 기반 주변 환경 탐색 중...';
+  setTimeout(()=>{status.textContent='신호 포착됨 — 분석 중...';},1000);
+  setTimeout(()=>{
+    center.style.display='none';
+    document.getElementById('ar-icon').textContent=isL?'☕':'🎯';
+    document.getElementById('ar-icon').style.background=isL?'var(--local-dim)':'var(--quest-dim)';
+    document.getElementById('ar-type').textContent=isL?'Local Partner Found':'Quest Target Detected';
+    document.getElementById('ar-type').style.color=isL?'var(--local)':'var(--quest)';
+    document.getElementById('ar-card-title').textContent=s.title+' 도착!';
+    document.getElementById('ar-desc').textContent=isL?'여행사 제휴 히든 스폿입니다. 간판을 스캔하면 무료 쿠폰이 발급됩니다.':'가이드가 숨겨둔 퀘스트 스폿입니다. 미션을 수행하고 점수를 획득하세요.';
+    const cta=document.getElementById('ar-cta');
+    cta.style.background=isL?'var(--local)':'var(--quest)';cta.style.color=isL?'#000':'#fff';
+    panel.classList.add('show');
+  },2500);
+}
+
+function startQuest(){viewStack.push('quest');showView('quest');loadQuest(currentSpot);}
+
+function loadQuest(s){
+  document.getElementById('quest-bg').style.backgroundImage=`url(${s.bg})`;
+  const isL=s.type==='Quest_Local',col=isL?'var(--local)':'var(--quest)',colDim=isL?'var(--local-dim)':'var(--quest-dim)';
+  const badge=document.getElementById('q-badge');
+  badge.textContent=isL?'Local Event':'Live Mission';
+  badge.style.background=colDim;badge.style.borderColor=col;badge.style.color=col;
+  document.getElementById('q-pts').textContent=`+${s.pts} PTS`;
+  const inner=document.getElementById('quest-inner');
+  if(s.type==='Quest_Quiz'){
+    inner.innerHTML=`<div class="quest-card"><div class="quest-q">${s.q}</div><div class="quiz-opts">${s.opts.map((o,i)=>`<button class="quiz-opt" onclick="checkQuiz(${i},${s.ans},${s.pts})">${o}</button>`).join('')}</div></div>`;
+  } else if(s.type==='Quest_Action'){
+    tapCnt=0;
+    inner.innerHTML=`<div class="quest-card"><div class="quest-q">${s.q}</div><div class="tap-ring"><button class="tap-btn" id="tap-btn" onclick="doTap(${s.pts})">🖐</button></div><div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--txt2);text-align:center;margin-bottom:8px" id="tap-count">0 / 15</div><div class="tap-bar-wrap"><div class="tap-bar" id="tap-bar"></div></div></div>`;
+  } else if(s.type==='Quest_Local'){
+    inner.innerHTML=`<div class="quest-card"><div class="quest-q">${s.q}</div><div class="scan-frame"><div class="scan-line" id="scan-line"></div><div class="scan-hint" id="scan-hint">카메라 영역을 간판에 맞추세요</div></div><button class="scan-cta" onclick="runLocalScan(${s.pts})" id="scan-btn"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>간판 인식하기</button></div>`;
+  }
+}
+
+function checkQuiz(sel,ans,pts){
+  const opts=document.querySelectorAll('.quiz-opt');
+  opts.forEach(o=>o.style.pointerEvents='none');
+  if(sel===ans){opts[sel].classList.add('correct');setTimeout(()=>questSuccess(pts,false),600);}
+  else{opts[sel].classList.add('wrong');setTimeout(()=>{opts[sel].classList.remove('wrong');opts.forEach(o=>o.style.pointerEvents='');showModal('오답입니다','주변 건축물을 다시 관찰해보세요!','err');},300);}
+}
+function doTap(pts){
+  tapCnt++;const btn=document.getElementById('tap-btn');
+  btn.style.transform='scale(0.92)';setTimeout(()=>btn.style.transform='',80);
+  document.getElementById('tap-count').textContent=`${tapCnt} / 15`;
+  document.getElementById('tap-bar').style.width=`${(tapCnt/15)*100}%`;
+  if(tapCnt>=15) questSuccess(pts,false);
+}
+function runLocalScan(pts){
+  document.getElementById('scan-btn').style.display='none';
+  const line=document.getElementById('scan-line'),hint=document.getElementById('scan-hint');
+  hint.textContent='AI Vision 인식 중...';line.style.display='block';
+  setTimeout(()=>{line.style.display='none';questSuccess(pts,true);},2200);
+}
+function questSuccess(pts,isLocal){
+  myScore+=pts;
+  const inner=document.getElementById('quest-inner');
+  const localPill=isLocal?`<div class="local-reward-pill">🎉 Arlington Tea Room — 갓 구운 스콘 1개 무료 쿠폰 발급 완료!</div>`:'';
+  inner.innerHTML=`<div class="quest-card"><div class="success-card"><div class="success-icon">✨</div><div class="success-label" style="color:${isLocal?'var(--local)':'var(--quest)'}">Mission Cleared!</div><div class="success-pts">+${pts} PTS</div>${localPill}<div class="success-btns"><button class="s-btn" onclick="switchTab('rewards')">지갑 확인</button><button class="s-btn gold" onclick="switchTab('leaderboard');updateLB()">랭킹 확인</button></div></div></div>`;
+  if(isLocal) addCoupon(false);
+  checkRank1(pts);
+}
+function addCoupon(isGold){
+  document.getElementById('wallet-empty').style.display='none';
+  const wl=document.getElementById('wallet-list');
+  if(isGold){
+    wl.innerHTML+=`<div class="coupon-card gold-coupon"><div class="coupon-tag">1st Place Prize</div><div class="coupon-from">The Swan Hotel</div><div class="coupon-name">프리미엄 애프터눈 티 2인권</div><button class="coupon-btn" style="background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold)">바코드 열기</button></div>`;
+  } else {
+    wl.innerHTML+=`<div class="coupon-card local-coupon"><div class="coupon-tag">Local Event</div><div class="coupon-from">Arlington Tea Room</div><div class="coupon-name">갓 구운 스콘 1개 무료 제공</div><button class="coupon-btn">바코드 열기</button></div>`;
+  }
+}
+function checkRank1(){
+  const all=[...lbOthers,{name:'You',score:myScore}].sort((a,b)=>b.score-a.score);
+  if(all[0].name==='You'&&!document.querySelector('.gold-coupon')) addCoupon(true);
+}
+function updateLB(){
+  const all=[...lbOthers,{name:'Me',score:myScore}].sort((a,b)=>b.score-a.score);
+  const rank=all.findIndex(u=>u.name==='Me')+1;
+  document.getElementById('my-score').textContent=myScore+' PTS';
+  document.getElementById('my-rank').textContent=rank+'th';
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('lb-list').innerHTML=all.map((u,i)=>{
+    const isMe=u.name==='Me';
+    return `<div class="lb-row ${isMe?'me':''} ${i===0?'gold-rank':''}"><div class="lb-medal">${medals[i]||i+1}</div><div class="lb-name">${isMe?'나 (Me)':u.name}</div><div class="lb-score">${u.score}</div></div>`;
+  }).join('');
+}
+
+/* ─── AUDIO PLAYER — FIX #3 ─── */
+function openAudio(id){
+  currentSpot=spots.find(x=>x.id===id);
+  document.getElementById('p-img').src=currentSpot.img;
+  document.getElementById('p-tag').textContent='Gemini AI Guide';
+  document.getElementById('p-title').textContent=currentSpot.title;
+  document.getElementById('gemini-init').style.display='flex';
+  document.getElementById('gemini-loading').style.display='none';
+  document.getElementById('gemini-result').style.display='none';
+  document.getElementById('camera-flash').style.opacity='0';
+  document.getElementById('camera-scan-line').style.display='none';
+  if(isPlaying) togglePlay();
+  viewStack.push('player');showView('player');
+}
+function runGeminiAnalysis(){
+  const flash=document.getElementById('camera-flash');
+  flash.style.opacity='1';
+  setTimeout(()=>{
+    flash.style.opacity='0';
+    document.getElementById('gemini-init').style.display='none';
+    document.getElementById('gemini-loading').style.display='flex';
+    const scanLine=document.getElementById('camera-scan-line');
+    scanLine.style.display='block';
+    let pos=0,dir=1;
+    const si=setInterval(()=>{pos+=dir*3;if(pos>100){pos=100;dir=-1;}if(pos<0){pos=0;dir=1;}scanLine.style.top=pos+'%';},30);
+    setTimeout(()=>{
+      clearInterval(si);scanLine.style.display='none';
+      document.getElementById('gemini-loading').style.display='none';
+      document.getElementById('gemini-result').style.display='flex';
+      setQaContent(currentSpot.transcript,currentSpot.title);
+      renderQaButtons(currentSpot.qa);
+      togglePlay();
+    },2500);
+  },150);
+}
+
+function setQaContent(text,title){
+  document.getElementById('p-transcript').textContent=text;
+  document.getElementById('p-now-title').textContent=title||'AI 해설 재생 중';
+  audioProgress=0;
+  document.getElementById('prog-fill').style.width='0%';
+  document.getElementById('prog-dot').style.left='0%';
+  document.getElementById('p-curr').textContent='00:00';
+  if(isPlaying) togglePlay();
+}
+function renderQaButtons(qaArray){
+  const c=document.getElementById('p-qa-list');
+  c.innerHTML=qaArray.map((q,i)=>`<button class="qa-btn" onclick="playQa(${i})"><div class="qa-icon">✨</div><div>${q.q}</div></button>`).join('');
+}
+function playQa(idx){const qa=currentSpot.qa[idx];setQaContent(qa.a,qa.q);togglePlay();}
+
+/* FIX #3: rewind / forward controls */
+function rewindAudio(){audioProgress=Math.max(0,audioProgress-11);updateProgressUI();}
+function forwardAudio(){audioProgress=Math.min(100,audioProgress+11);updateProgressUI();}
+function seekAudio(e){
+  const track=document.getElementById('prog-track');
+  const rect=track.getBoundingClientRect();
+  audioProgress=Math.max(0,Math.min(100,((e.clientX-rect.left)/rect.width)*100));
+  updateProgressUI();
+}
+function updateProgressUI(){
+  const pct=audioProgress;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-dot').style.left=pct+'%';
+  const sec=Math.round(pct*1.35);
+  document.getElementById('p-curr').textContent=`0${Math.floor(sec/60)}:${sec%60<10?'0'+sec%60:sec%60}`;
+}
+
+function togglePlay(){
+  isPlaying=!isPlaying;
+  document.getElementById('p-play-icon').style.display=isPlaying?'none':'';
+  document.getElementById('p-pause-icon').style.display=isPlaying?'':'none';
+  const btn=document.getElementById('p-play-btn');
+  if(isPlaying){
+    btn.classList.add('playing');
+    audioInt=setInterval(()=>{
+      audioProgress=Math.min(100,audioProgress+0.7);
+      updateProgressUI();
+      if(audioProgress>=100){clearInterval(audioInt);isPlaying=false;document.getElementById('p-play-icon').style.display='';document.getElementById('p-pause-icon').style.display='none';btn.classList.remove('playing');}
+    },100);
+  } else {
+    btn.classList.remove('playing');clearInterval(audioInt);
+  }
+}
+
+/* ─── TIMER & MODAL ─── */
+function startTimer(){
+  setInterval(()=>{
+    if(timeLeft>0){timeLeft--;const m=Math.floor(timeLeft/60),s=timeLeft%60;document.getElementById('timer-text').textContent=`${m<10?'0'+m:m}:${s<10?'0'+s:s}`;}
+  },1000);
+}
+function showModal(title,msg,type){
+  document.getElementById('modal-icon').textContent=type==='err'?'⚠':'✓';
+  document.getElementById('modal-icon').className='modal-icon '+(type==='err'?'err':'ok');
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-msg').textContent=msg;
+  document.getElementById('overlay').className='overlay show';
+  document.getElementById('modal').className='modal show';
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('modal').classList.remove('show');
+}
+init();
+</script>
+</body>
+</html>
