@@ -19,7 +19,6 @@
   --border:#2a2d31;--border2:#363a3f;
   --r:14px;--rs:8px;
 }
-/* 스크롤 시 따라 올라가는 현상 방지를 위해 body 고정 */
 body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden;padding:0}
 .phone{width:390px;height:820px;max-height:100vh;background:var(--bg0);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;outline:10px solid #0f1012;box-shadow:0 30px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}*{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
@@ -27,7 +26,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 /* header */
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;background:var(--bg0);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:30}
 .hdr-left{width:44px;display:flex;align-items:center}
-/* 터치 영역 확보 */
 .hdr-btn{background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;transition:color .2s}
 .hdr-btn:active{color:var(--gold)}
 .hdr-title{font-family:'Playfair Display',serif;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt1);text-align:center;flex:1}
@@ -41,7 +39,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 
 /* content */
 .content{flex:1;position:relative;overflow:hidden;background:var(--bg1)}
-/* 스크롤 잘림 방지 하단 패딩 추가 */
 .view{display:none;flex-direction:column;height:100%;overflow-y:auto;padding-bottom:80px !important}
 .view.active{display:flex;animation:fadeUp .28s cubic-bezier(.2,.8,.4,1) both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -49,7 +46,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 /* tab bar */
 .tabbar{display:none;flex-shrink:0;background:var(--bg0);border-top:1px solid var(--border);padding:10px 6px 20px;z-index:30}
 .tabbar.show{display:flex;justify-content:space-around}
-/* 터치 영역 확보 */
 .tab-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;padding:6px 10px;min-width:44px;min-height:44px;border-radius:var(--rs);transition:all .2s;color:var(--txt3)}
 .tab-btn.active{color:var(--gold)}
 .tab-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
@@ -75,9 +71,21 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .modal-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:22px}
 .modal-icon.err{background:var(--quest-dim);color:var(--quest)}
 .modal-icon.ok{background:var(--local-dim);color:var(--local)}
-/* 터치 영역 확보 */
 .modal-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;min-height:44px;border-radius:var(--r);cursor:pointer;transition:background .2s}
 .modal-btn:active{background:#2e3238}
+
+/* ── 바코드 모달 ── */
+.barcode-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);width:85%;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:24px 20px;z-index:70;display:none;flex-direction:column;align-items:center;text-align:center}
+.barcode-modal.show{display:flex;animation:popIn .25s cubic-bezier(.34,1.56,.64,1) both}
+.barcode-header{font-family:'Playfair Display',serif;font-size:17px;color:var(--txt1);margin-bottom:4px}
+.barcode-sub{font-size:11px;color:var(--txt2);margin-bottom:20px}
+.barcode-wrap{background:#fff;border-radius:var(--rs);padding:14px 10px;margin-bottom:16px;width:100%}
+.barcode-bars{display:flex;align-items:flex-end;justify-content:center;gap:1.5px;height:64px}
+.barcode-bars span{background:#111;border-radius:1px;display:block}
+.barcode-number{font-family:'DM Mono',monospace;font-size:11px;color:#333;margin-top:8px;letter-spacing:.15em}
+.barcode-validity{background:var(--local-dim);border:1px solid var(--local);border-radius:var(--rs);padding:8px 14px;font-size:11px;color:var(--local);margin-bottom:16px;width:100%;display:flex;align-items:center;gap:8px}
+.barcode-close{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:12px;border-radius:var(--r);cursor:pointer;transition:background .2s}
+.barcode-close:active{background:var(--bg2)}
 
 /* home */
 #view-home{padding:24px 20px;gap:0}
@@ -116,8 +124,11 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .spot-arrow{color:var(--txt3);margin-top:4px;flex-shrink:0}
 
 /* ── MAP (Leaflet) ── */
-#view-map{position:relative;overflow:hidden}
+#view-map{position:relative;overflow:hidden;padding-bottom:0 !important}
 #leaflet-map{position:absolute;inset:0;z-index:1}
+/* [FIX] Attribution 표시 보존 — 숨기지 않음 */
+.leaflet-control-attribution{background:rgba(8,9,10,.7)!important;color:var(--txt3)!important;font-size:9px!important}
+.leaflet-control-attribution a{color:var(--txt2)!important}
 .map-ui-layer{position:absolute;inset:0;z-index:10;pointer-events:none}
 .map-guide{position:absolute;top:12px;left:12px;right:12px;z-index:20;background:rgba(26,28,31,.97);border:1px solid var(--gold);border-radius:var(--r);padding:12px 14px;display:none;animation:slideDown .3s cubic-bezier(.2,.8,.4,1) both;pointer-events:none}
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
@@ -170,7 +181,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .ar-card-type{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
 .ar-card-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--txt1)}
 .ar-card-desc{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
-/* 터치 영역 확보 */
 .ar-cta{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:15px;min-height:44px;border-radius:var(--r);border:none;cursor:pointer;transition:opacity .2s}
 .ar-cta:active{opacity:.8}
 
@@ -239,7 +249,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .player-progress{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .prog-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--txt2);min-width:36px}
 .prog-track{flex:1;height:4px;background:var(--bg3);border-radius:2px;position:relative;cursor:pointer}
-/* 애니메이션 진행을 위해 transition 제거 후 JS requestAnimationFrame 사용 */
 .prog-fill{height:100%;background:linear-gradient(90deg, var(--gemini1), var(--gemini2));border-radius:2px;width:0%}
 .prog-dot{width:14px;height:14px;background:var(--gemini2);border-radius:50%;position:absolute;top:50%;transform:translateY(-50%) translateX(-50%);cursor:grab;box-shadow:0 0 10px rgba(155,114,203,0.5)}
 .player-btns{display:flex;align-items:center;justify-content:center;gap:28px}
@@ -356,7 +365,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .flow-text{flex:1;padding-top:6px}
 .flow-text-title{font-size:13px;font-weight:600;color:var(--txt1);margin-bottom:2px}
 .flow-text-sub{font-size:11px;color:var(--txt2)}
-/* 터치 영역 확보 */
 .save-to-wallet-btn{width:100%;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;min-height:44px;border-radius:var(--r);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;margin-bottom:8px}
 .save-to-wallet-btn:active{opacity:.8}
 .voice-narr-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;min-height:44px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s}
@@ -408,6 +416,28 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .coupon-btn{background:rgba(0,0,0,.3);border:none;color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:10px 16px;min-height:44px;border-radius:var(--rs);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background .2s}
 .coupon-btn:active{background:rgba(0,0,0,.5)}
 
+/* ── 아트 노트 모달 ── */
+.art-note-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);width:88%;max-height:82%;background:var(--bg1);border:1px solid rgba(196,152,42,.35);border-radius:20px;z-index:70;display:none;flex-direction:column;overflow:hidden}
+.art-note-modal.show{display:flex;animation:popIn .25s cubic-bezier(.34,1.56,.64,1) both}
+.art-note-hero{position:relative;height:130px;flex-shrink:0;overflow:hidden}
+.art-note-hero img{width:100%;height:100%;object-fit:cover;opacity:.7}
+.art-note-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg1) 0%,rgba(8,9,10,.3) 100%)}
+.art-note-hero-info{position:absolute;bottom:0;left:0;right:0;padding:12px 16px}
+.art-note-tag{display:inline-block;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(90deg,var(--gallery1),var(--gallery2));color:#fff;padding:3px 8px;border-radius:4px;margin-bottom:5px}
+.art-note-title{font-family:'Playfair Display',serif;font-size:17px;color:#fff;line-height:1.2}
+.art-note-artist{font-size:10px;color:rgba(255,255,255,.55);margin-top:2px}
+.art-note-body{padding:14px 16px;overflow-y:auto;flex:1}
+.art-note-row{display:flex;gap:8px;margin-bottom:12px}
+.art-note-chip{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;text-align:center}
+.art-note-chip-label{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:2px}
+.art-note-chip-val{font-size:11px;font-weight:600;color:var(--txt1)}
+.art-note-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.art-note-section-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gallery2);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.art-note-section-txt{font-size:12px;color:var(--txt1);line-height:1.65;font-weight:300}
+.art-note-saved-at{font-size:10px;color:var(--txt3);text-align:center;margin-bottom:12px}
+.art-note-close{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:12px;border-radius:var(--r);cursor:pointer;transition:background .2s;flex-shrink:0;margin:0 16px 14px;width:calc(100% - 32px)}
+.art-note-close:active{background:var(--bg2)}
+
 /* Leaflet override for dark mode */
 .leaflet-container{background:#1a1e24!important}
 .leaflet-tile{filter:brightness(.85) saturate(.9)!important}
@@ -415,12 +445,57 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 </head>
 <body>
 <div class="phone">
-  <div class="overlay" id="overlay" onclick="closeModal()"></div>
+  <div class="overlay" id="overlay" onclick="closeModal();closeArtNoteModal();closeBarcodeModal()"></div>
+
+  <!-- 오답 모달 -->
   <div class="modal" id="modal">
     <div class="modal-icon" id="modal-icon">⚠</div>
     <h3 id="modal-title">오답입니다</h3>
-    <p id="modal-msg">주변 건축물을 다시 관찰해보세요!</p>
+    <p id="modal-msg" style="font-size:13px;color:var(--txt2);margin:8px 0 20px;line-height:1.6">주변 건축물을 다시 관찰해보세요!</p>
     <button class="modal-btn" onclick="closeModal()">다시 시도하기</button>
+  </div>
+
+  <!-- [NEW] 바코드 모달 -->
+  <div class="barcode-modal" id="barcode-modal">
+    <div style="font-size:28px;margin-bottom:10px" id="bc-emoji">🎟</div>
+    <div class="barcode-header" id="bc-title">갓 구운 스콘 1개 무료</div>
+    <div class="barcode-sub" id="bc-from">Arlington Tea Room</div>
+    <div class="barcode-wrap">
+      <div class="barcode-bars" id="bc-bars"></div>
+      <div class="barcode-number" id="bc-number">0000 0000 0000</div>
+    </div>
+    <div class="barcode-validity">
+      <span>✓</span>
+      <span id="bc-validity">오늘 (2026년 5월 11일) 만료</span>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:14px;line-height:1.5">직원에게 이 화면을 보여주세요.<br>1회 사용 후 자동 소멸됩니다.</div>
+    <button class="barcode-close" onclick="closeBarcodeModal()">닫기</button>
+  </div>
+
+  <!-- [NEW] 아트 노트 모달 — 갤러리 관람 기록 전용 -->
+  <div class="art-note-modal" id="art-note-modal">
+    <div class="art-note-hero">
+      <img id="an-img" src="" alt="">
+      <div class="art-note-hero-overlay"></div>
+      <div class="art-note-hero-info">
+        <div class="art-note-tag">Art Note · Saved</div>
+        <div class="art-note-title" id="an-title">—</div>
+        <div class="art-note-artist" id="an-artist">—</div>
+      </div>
+    </div>
+    <div class="art-note-body">
+      <div class="art-note-saved-at" id="an-saved-at"></div>
+      <div class="art-note-row" id="an-chips"></div>
+      <div class="art-note-section">
+        <div class="art-note-section-lbl">✨ Gemini 분석 요약</div>
+        <div class="art-note-section-txt" id="an-overview"></div>
+      </div>
+      <div class="art-note-section">
+        <div class="art-note-section-lbl">🎨 기법</div>
+        <div class="art-note-section-txt" id="an-technique"></div>
+      </div>
+    </div>
+    <button class="art-note-close" onclick="closeArtNoteModal()">닫기</button>
   </div>
 
   <!-- header -->
@@ -480,7 +555,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
       </div>
     </div>
 
-    <!-- tour list (Cotswolds) -->
+    <!-- tour list -->
     <div class="view" id="view-tour" style="padding:24px 20px">
       <div class="list-eyebrow">AI Audio &amp; AR Tour</div>
       <h2 class="list-title">Cotswolds<br>Hidden Quest</h2>
@@ -488,7 +563,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
       <div id="spot-list"></div>
     </div>
 
-    <!-- map — Leaflet real map -->
+    <!-- map -->
     <div class="view" id="view-map" style="position:relative;overflow:hidden;padding-bottom:0 !important">
       <div id="leaflet-map" style="position:absolute;inset:0;z-index:1"></div>
       <div class="map-guide" id="map-guide">
@@ -614,7 +689,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
           <div class="gallery-hero-sub">Trafalgar Square, London · Room 1–46</div>
         </div>
       </div>
-      <button class="gallery-scan-btn" onclick="openGalleryScan()" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));border:none;border-radius:var(--r);padding:16px 20px;margin:12px 20px;width:calc(100% - 40px);cursor:pointer;transition:opacity .2s;min-height:44px">
+      <button onclick="openGalleryScan()" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));border:none;border-radius:var(--r);padding:16px 20px;margin:12px 20px;width:calc(100% - 40px);cursor:pointer;transition:opacity .2s;min-height:44px">
         <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📷</div>
         <div style="text-align:left;flex:1">
           <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:2px">작품 스캔하기</div>
@@ -760,11 +835,11 @@ const spots=[
   {id:1,type:'Audio',title:'Arlington Row',sub:'14세기의 양모 상점들',img:'https://picsum.photos/id/1015/800/600',
    transcript:'현재 보시는 허니컬러의 석조 오두막들은 1380년경 수도원의 양모 창고로 지어졌습니다. 시각 분석 결과, 코츠월드 라임스톤의 질감이 뚜렷하게 관찰되며 급격한 지붕 경사는 당시의 독특한 건축 기술을 보여줍니다.',
    qa:[{q:'지붕 타일은 어떻게 만들었나요?',a:'현지에서 채굴한 라임스톤 원석을 겨울철 서리에 노출시켜 자연스럽게 얇게 쪼개지는 방식을 활용해 제작했습니다.'},{q:'창문이 왜 이렇게 작나요?',a:'14세기 당시 유리가 매우 비싼 사치품이었으며, 혹독한 겨울 추위를 막기 위해 창문의 크기를 최소화했습니다.'},{q:'현재도 사람이 살고 있나요?',a:'네, 영국의 문화유산 보호단체인 내셔널 트러스트(National Trust)가 관리하며 실제 주민들이 거주하고 있습니다.'}],
-   lat:51.7709,lng:-1.8337},
+   lat:51.7709,lng:-1.8337,totalSecs:135},
   {id:2,type:'Audio',title:'Rack Isle',sub:'마을 중심의 생태 보호 구역',img:'https://picsum.photos/id/1038/800/600',
    transcript:'랙 아일입니다. 과거에는 양모를 세척하고 말리던 장소였지만, 화면 분석 결과 현재는 다양한 수생 식물과 백조가 서식하는 아름다운 생태 보호 구역으로 보존되고 있습니다.',
    qa:[{q:'섬 이름이 왜 Rack Isle인가요?',a:"과거 직조공들이 물에 씻은 양모를 말리기 위해 설치했던 목재 건조대(Rack)에서 유래한 이름입니다."},{q:'어떤 동물들을 볼 수 있나요?',a:'계절에 따라 야생 오리, 백조, 물총새 등 다양한 조류와 수생태계 생물들을 관찰할 수 있습니다.'},{q:'물이 유난히 맑은 이유는?',a:'석회암 지대를 통과하며 자연 여과된 물이 콜른 강으로 흘러들어오기 때문에 맑고 투명한 수질을 유지합니다.'}],
-   lat:51.7715,lng:-1.8310},
+   lat:51.7715,lng:-1.8310,totalSecs:118},
   {id:3,type:'Quest_Quiz',title:'건축 양식의 비밀',sub:'현장 관찰 퀴즈',pts:100,lat:51.7700,lng:-1.8330,q:'방금 지나온 건물 문 위쪽에 새겨진 연도는?',opts:['A. 1380년','B. 1645년','C. 1820년'],ans:1,bg:'https://picsum.photos/id/1044/800/600'},
   {id:4,type:'Quest_Action',title:'오래된 문양 복원하기',sub:'연타 액션 미션',pts:150,lat:51.7695,lng:-1.8305,q:'석조 문양에 이끼가 끼어 있습니다. 버튼을 빠르게 15번 연타하여 이끼를 제거하세요!',bg:'https://picsum.photos/id/1060/800/600'},
   {id:5,type:'Quest_Local',title:'Arlington Tea Room',sub:'로컬 제휴 이벤트',pts:200,lat:51.7690,lng:-1.8345,q:'로컬 제휴 스폿입니다! 찻집 간판을 스캔하면 무료 쿠폰이 발급됩니다.',bg:'https://picsum.photos/id/1068/800/600'}
@@ -788,16 +863,83 @@ const artworkRooms=[
 ];
 
 /* ─── STATE ─── */
-let myScore=0,timeLeft=45*60,currentSpot=null,currentArtwork=null,tapCnt=0,audioInt=null,isPlaying=false,audioProgress=0,leafletMap=null,mapInited=false;
+let myScore=0,timeLeft=45*60,currentSpot=null,currentArtwork=null,tapCnt=0,isPlaying=false,audioProgress=0,leafletMap=null,mapInited=false;
 let viewStack=['home'];
 const lbOthers=[{name:'John D.',score:450},{name:'Emma W.',score:320},{name:'Carlos M.',score:200}];
 const titles={home:'All Tours',tour:'Tour List',map:'Map & AR','ar-scan':'AR Explore',quest:'Live Mission',player:'Gemini AI Guide',gallery:'National Gallery',artwork:'AI Art Analysis','gallery-scan':'Artwork Scanner',leaderboard:'Leaderboard',rewards:'My Wallet'};
 
-/* 오디오 플레이어 애니메이션 상태 */
-let playLastTime = 0;
-let playAnimFrame = null;
-let timerInterval = null;
+/* [FIX] 오디오 재생 관련 변수 정리 */
+let playStartTime=0;       // rAF 시작 타임스탬프
+let playStartProgress=0;   // 재생 시작 시점의 progress (0~100)
+let playTotalSecs=135;     // 현재 트랙 전체 길이(초) — spot.totalSecs에서 가져옴
+let playAnimFrame=null;
+let timerInterval=null;
 
+/* ─── ART NOTE MODAL ─── */
+function openArtNoteModal(id){
+  const allArtworks=artworkRooms.flatMap(r=>r.artworks);
+  const aw=allArtworks.find(a=>a.id===id);
+  if(!aw) return;
+  document.getElementById('an-img').src=aw.img;
+  document.getElementById('an-title').textContent=aw.title;
+  document.getElementById('an-artist').textContent=aw.artist+' · '+aw.year+' · '+aw.medium;
+  // 저장 시각
+  const now=new Date();
+  document.getElementById('an-saved-at').textContent=
+    `${now.getFullYear()}.${now.getMonth()+1}.${now.getDate()} 관람 기록`;
+  // 메타 칩
+  const chips=Object.entries(aw.analysis.meta)
+    .map(([k,v])=>`<div class="art-note-chip"><div class="art-note-chip-label">${k}</div><div class="art-note-chip-val">${v}</div></div>`)
+    .join('');
+  document.getElementById('an-chips').innerHTML=chips;
+  document.getElementById('an-overview').textContent=aw.analysis.overview;
+  document.getElementById('an-technique').textContent=aw.analysis.technique;
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('art-note-modal').classList.add('show');
+}
+function closeArtNoteModal(){
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('art-note-modal').classList.remove('show');
+}
+
+/* ─── BARCODE GENERATOR ─── */
+function generateBarcodeNumber(){
+  return Array.from({length:3},()=>String(Math.floor(Math.random()*10000)).padStart(4,'0')).join(' ');
+}
+function drawBarcode(containerId){
+  const c=document.getElementById(containerId);
+  c.innerHTML='';
+  // 바코드 패턴 생성
+  const pattern=[3,1,2,1,3,2,1,1,3,1,2,3,1,2,1,3,1,2,2,1,3,1,1,2,3,1,2,1];
+  const heights=[64,48,64,48,56,64,48,64,56,48,64,48,64,56,48,64,48,64,56,48,64,48,64,56,48,64,48,56];
+  pattern.forEach((w,i)=>{
+    const bar=document.createElement('span');
+    bar.style.width=(w*2)+'px';
+    bar.style.height=heights[i%heights.length]+'px';
+    if(i%2===0) bar.style.background='#111';
+    else bar.style.background='transparent';
+    c.appendChild(bar);
+  });
+}
+
+function openBarcodeModal(type,title,from,emoji){
+  drawBarcode('bc-bars');
+  document.getElementById('bc-emoji').textContent=emoji||'🎟';
+  document.getElementById('bc-title').textContent=title;
+  document.getElementById('bc-from').textContent=from;
+  document.getElementById('bc-number').textContent=generateBarcodeNumber();
+  const today=new Date();
+  const dateStr=`${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+  document.getElementById('bc-validity').textContent=`오늘 (${dateStr}) 만료`;
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('barcode-modal').classList.add('show');
+}
+function closeBarcodeModal(){
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('barcode-modal').classList.remove('show');
+}
+
+/* ─── INIT ─── */
 function init(){buildSpotList();buildGallery();updateLB();startTimer();}
 
 /* ─── COTSWOLDS ─── */
@@ -849,7 +991,9 @@ function openArtwork(id){
   document.getElementById('aw-loading').style.display='flex';
   document.getElementById('aw-result').style.display='none';
   document.querySelectorAll('.loading-step').forEach(s=>{s.classList.remove('active','done');});
-  viewStack.push('artwork');
+  /* [FIX] viewStack 버그 수정 — gallery-scan에서 왔을 경우 스택을 정리 후 추가 */
+  if(viewStack[viewStack.length-1]==='gallery-scan') viewStack.pop();
+  if(viewStack[viewStack.length-1]!=='artwork') viewStack.push('artwork');
   showView('artwork');
   runArtworkAnalysis();
 }
@@ -922,7 +1066,8 @@ function saveArtworkToWallet(id){
   if(!document.querySelector(`[data-artwork-id="${id}"]`)){
     document.getElementById('wallet-empty').style.display='none';
     const wl=document.getElementById('wallet-list');
-    wl.innerHTML+=`<div class="coupon-card gallery-coupon" data-artwork-id="${id}"><div class="coupon-tag">Art Note</div><div class="coupon-from">National Gallery</div><div class="coupon-name">${aw.title}<br><span style="font-size:12px;font-weight:400;color:var(--txt2)">${aw.artist} · ${aw.year}</span></div><button class="coupon-btn" style="background:rgba(196,152,42,.2);border:1px solid var(--gallery2);color:var(--gallery2)" onclick="switchTab('rewards')">지갑에서 보기</button></div>`;
+    /* [FIX] 바코드 버튼 연결 */
+    wl.innerHTML+=`<div class="coupon-card gallery-coupon" data-artwork-id="${id}"><div class="coupon-tag">Art Note</div><div class="coupon-from">National Gallery</div><div class="coupon-name">${aw.title}<br><span style="font-size:12px;font-weight:400;color:var(--txt2)">${aw.artist} · ${aw.year}</span></div><button class="coupon-btn" style="background:rgba(196,152,42,.2);border:1px solid var(--gallery2);color:var(--gallery2)" onclick="openArtNoteModal('${aw.id}')">아트 노트 열기</button></div>`;
   }
 }
 
@@ -932,7 +1077,8 @@ function startVoiceNarration(id){
   currentSpot={
     id:'art_'+id,type:'Audio',title:aw.title,img:aw.img,
     transcript:aw.analysis.overview+' '+aw.analysis.technique,
-    qa:aw.analysis.qa
+    qa:aw.analysis.qa,
+    totalSecs:140
   };
   document.getElementById('p-img').src=aw.img;
   document.getElementById('p-tag').textContent='Gemini AI Art Guide';
@@ -940,15 +1086,17 @@ function startVoiceNarration(id){
   document.getElementById('gemini-init').style.display='none';
   document.getElementById('gemini-loading').style.display='none';
   document.getElementById('gemini-result').style.display='flex';
-  setQaContent(aw.analysis.overview+' '+aw.analysis.technique,aw.title);
+  setQaContent(aw.analysis.overview+' '+aw.analysis.technique,aw.title,140);
   renderQaButtons(aw.analysis.qa);
-  viewStack.push('player');
+  /* [FIX] viewStack 중복 push 방지 */
+  if(viewStack[viewStack.length-1]!=='player') viewStack.push('player');
   showView('player');
   setTimeout(()=>togglePlay(),300);
 }
 
 function openGalleryScan(){
-  viewStack.push('gallery-scan');
+  /* [FIX] 중복 push 방지 */
+  if(viewStack[viewStack.length-1]!=='gallery-scan') viewStack.push('gallery-scan');
   showView('gallery-scan');
   runGalleryScanAnim();
 }
@@ -971,8 +1119,7 @@ function runGalleryScanAnim(){
 
 function openScannedArtwork(){
   const id=document._scannedArtworkId||'ng1';
-  if(viewStack[viewStack.length-1]==='gallery-scan') viewStack.pop();
-  setTimeout(()=>openArtwork(id),50);
+  openArtwork(id); // [FIX] openArtwork 내부에서 viewStack 처리
 }
 
 /* ─── LEAFLET MAP ─── */
@@ -983,14 +1130,12 @@ function initMap(){
     center:[51.7705,-1.8325],
     zoom:16,
     zoomControl:false,
-    attributionControl:false
+    /* [FIX] attributionControl 활성화 (기본값 true — 명시 삭제) */
   });
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    attribution:'© OpenStreetMap © CARTO',
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
     subdomains:'abcd',maxZoom:19
   }).addTo(map);
-  L.control.attribution({position:'bottomright',prefix:''}).addTo(map);
-  map.attributionControl.setPrefix('');
   const userIcon=L.divIcon({className:'',html:'<div class="lf-user-pin"></div>',iconSize:[18,18],iconAnchor:[9,9]});
   L.marker([51.7703,-1.8328],{icon:userIcon}).addTo(map);
   spots.forEach(s=>{
@@ -1014,10 +1159,7 @@ function showView(id){
   document.getElementById('view-'+id).classList.add('active');
   document.getElementById('hdr-title').textContent=titles[id]||id;
   const root=['home','tour','map','gallery','leaderboard','rewards'];
-  
-  /* 플로팅 뒤로가기 제어 */
-  document.getElementById('fab-back').style.display = root.includes(id) ? 'none' : 'flex';
-  
+  document.getElementById('fab-back').style.display=root.includes(id)?'none':'flex';
   const tb=document.getElementById('tabbar');
   tb.className=id==='home'?'tabbar':'tabbar show';
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -1034,7 +1176,13 @@ function switchTab(id){
 }
 
 function selectTour(){viewStack=['home','tour'];showView('tour');document.getElementById('timer-badge').classList.add('show');}
-function goBack(){if(viewStack.length>1) viewStack.pop();const prev=viewStack[viewStack.length-1];showView(prev);if(isPlaying)togglePlay();}
+
+function goBack(){
+  if(isPlaying) togglePlay();
+  if(viewStack.length>1) viewStack.pop();
+  const prev=viewStack[viewStack.length-1];
+  showView(prev);
+}
 function toggleMenu(){document.getElementById('side-menu').classList.toggle('open');}
 
 /* ─── COTSWOLDS QUEST ─── */
@@ -1046,8 +1194,16 @@ function guideToQuest(id){
   g.classList.add('show');setTimeout(()=>g.classList.remove('show'),3500);
 }
 
-function goToScan(){if(!currentSpot)currentSpot=spots[4];viewStack.push('ar-scan');showView('ar-scan');runScan();}
-function startARScan(id){currentSpot=spots.find(s=>s.id===id);viewStack.push('ar-scan');showView('ar-scan');runScan();}
+function goToScan(){
+  if(!currentSpot) currentSpot=spots[4];
+  if(viewStack[viewStack.length-1]!=='ar-scan') viewStack.push('ar-scan');
+  showView('ar-scan');runScan();
+}
+function startARScan(id){
+  currentSpot=spots.find(s=>s.id===id);
+  if(viewStack[viewStack.length-1]!=='ar-scan') viewStack.push('ar-scan');
+  showView('ar-scan');runScan();
+}
 
 function runScan(){
   const panel=document.getElementById('ar-panel'),center=document.getElementById('ar-center'),status=document.getElementById('ar-status');
@@ -1070,7 +1226,10 @@ function runScan(){
   },2500);
 }
 
-function startQuest(){viewStack.push('quest');showView('quest');loadQuest(currentSpot);}
+function startQuest(){
+  if(viewStack[viewStack.length-1]!=='quest') viewStack.push('quest');
+  showView('quest');loadQuest(currentSpot);
+}
 
 function loadQuest(s){
   document.getElementById('quest-bg').style.backgroundImage=`url(${s.bg})`;
@@ -1113,28 +1272,25 @@ function runLocalScan(pts){
 function questSuccess(pts,isLocal){
   myScore+=pts;
   const inner=document.getElementById('quest-inner');
-  
-  /* 부자연스러운 전환을 방지하는 페이드 효과 추가 */
-  inner.style.transition = 'opacity 0.3s';
-  inner.style.opacity = '0';
-  
-  setTimeout(() => {
+  inner.style.transition='opacity 0.3s';
+  inner.style.opacity='0';
+  setTimeout(()=>{
     const localPill=isLocal?`<div class="local-reward-pill">🎉 Arlington Tea Room — 갓 구운 스콘 1개 무료 쿠폰 발급 완료!</div>`:'';
-    inner.innerHTML=`<div class="quest-card"><div class="success-card"><div class="success-icon">✨</div><div class="success-label" style="color:${isLocal?'var(--local)':'var(--quest)'}">Mission Cleared!</div><div class="success-pts">+${pts} PTS</div>${localPill}<div class="success-btns"><button class="s-btn" onclick="switchTab('rewards')">지갑 확인</button><button class="s-btn gold" onclick="switchTab('leaderboard');">랭킹 확인</button></div></div></div>`;
-    inner.style.opacity = '1';
-    
+    inner.innerHTML=`<div class="quest-card"><div class="success-card"><div class="success-icon">✨</div><div class="success-label" style="color:${isLocal?'var(--local)':'var(--quest)'}">Mission Cleared!</div><div class="success-pts">+${pts} PTS</div>${localPill}<div class="success-btns"><button class="s-btn" onclick="switchTab('rewards')">지갑 확인</button><button class="s-btn gold" onclick="switchTab('leaderboard')">랭킹 확인</button></div></div></div>`;
+    inner.style.opacity='1';
     if(isLocal) addCoupon(false);
-    checkRank1(pts);
-  }, 300);
+    checkRank1();
+  },300);
 }
 
 function addCoupon(isGold){
   document.getElementById('wallet-empty').style.display='none';
   const wl=document.getElementById('wallet-list');
   if(isGold){
-    wl.innerHTML+=`<div class="coupon-card gold-coupon"><div class="coupon-tag">1st Place Prize</div><div class="coupon-from">The Swan Hotel</div><div class="coupon-name">프리미엄 애프터눈 티 2인권</div><button class="coupon-btn" style="background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold)">바코드 열기</button></div>`;
+    /* [FIX] 바코드 연결 */
+    wl.innerHTML+=`<div class="coupon-card gold-coupon"><div class="coupon-tag">1st Place Prize</div><div class="coupon-from">The Swan Hotel</div><div class="coupon-name">프리미엄 애프터눈 티 2인권</div><button class="coupon-btn" style="background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold)" onclick="openBarcodeModal('gold','프리미엄 애프터눈 티 2인권','The Swan Hotel','🏆')">바코드 열기</button></div>`;
   } else {
-    wl.innerHTML+=`<div class="coupon-card local-coupon"><div class="coupon-tag">Local Event</div><div class="coupon-from">Arlington Tea Room</div><div class="coupon-name">갓 구운 스콘 1개 무료 제공</div><button class="coupon-btn">바코드 열기</button></div>`;
+    wl.innerHTML+=`<div class="coupon-card local-coupon"><div class="coupon-tag">Local Event</div><div class="coupon-from">Arlington Tea Room</div><div class="coupon-name">갓 구운 스콘 1개 무료 제공</div><button class="coupon-btn" onclick="openBarcodeModal('local','갓 구운 스콘 1개 무료','Arlington Tea Room','☕')">바코드 열기</button></div>`;
   }
 }
 function checkRank1(){
@@ -1165,8 +1321,10 @@ function openAudio(id){
   document.getElementById('camera-flash').style.opacity='0';
   document.getElementById('camera-scan-line').style.display='none';
   if(isPlaying) togglePlay();
-  viewStack.push('player');showView('player');
+  if(viewStack[viewStack.length-1]!=='player') viewStack.push('player');
+  showView('player');
 }
+
 function runGeminiAnalysis(){
   const flash=document.getElementById('camera-flash');
   flash.style.opacity='1';
@@ -1182,65 +1340,86 @@ function runGeminiAnalysis(){
       clearInterval(si);scanLine.style.display='none';
       document.getElementById('gemini-loading').style.display='none';
       document.getElementById('gemini-result').style.display='flex';
-      setQaContent(currentSpot.transcript,currentSpot.title);
+      const secs=currentSpot.totalSecs||135;
+      setQaContent(currentSpot.transcript,currentSpot.title,secs);
       renderQaButtons(currentSpot.qa);
       togglePlay();
     },2500);
   },150);
 }
 
-function setQaContent(text,title){
+/* [FIX] totalSecs 파라미터 추가 — 정확한 2분15초 타이밍 */
+function setQaContent(text,title,totalSecs){
   document.getElementById('p-transcript').textContent=text;
   document.getElementById('p-now-title').textContent=title||'AI 해설 재생 중';
+  playTotalSecs=totalSecs||135;
   audioProgress=0;
   document.getElementById('prog-fill').style.width='0%';
   document.getElementById('prog-dot').style.left='0%';
   document.getElementById('p-curr').textContent='00:00';
+  // 총 시간 표시
+  const m=Math.floor(playTotalSecs/60),s=playTotalSecs%60;
+  document.getElementById('p-total').textContent=`0${m}:${s<10?'0'+s:s}`;
   if(isPlaying) togglePlay();
 }
+
 function renderQaButtons(qaArray){
   const c=document.getElementById('p-qa-list');
   c.innerHTML=qaArray.map((q,i)=>`<button class="qa-btn" onclick="playQa(${i})"><div class="qa-icon">✨</div><div>${q.q}</div></button>`).join('');
 }
-function playQa(idx){const qa=currentSpot.qa[idx];setQaContent(qa.a,qa.q);togglePlay();}
+function playQa(idx){
+  const qa=currentSpot.qa[idx];
+  setQaContent(qa.a,qa.q,60);// Q&A는 1분으로 설정
+  togglePlay();
+}
 
-function rewindAudio(){audioProgress=Math.max(0,audioProgress-11);updateProgressUI();}
-function forwardAudio(){audioProgress=Math.min(100,audioProgress+11);updateProgressUI();}
+/* [FIX] 15초 = 전체 길이의 (15/totalSecs*100)% */
+function rewindAudio(){
+  const step=(15/playTotalSecs)*100;
+  audioProgress=Math.max(0,audioProgress-step);
+  /* 재생 중이면 기준점 재설정 */
+  if(isPlaying){playStartProgress=audioProgress;playStartTime=performance.now();}
+  updateProgressUI();
+}
+function forwardAudio(){
+  const step=(15/playTotalSecs)*100;
+  audioProgress=Math.min(100,audioProgress+step);
+  if(isPlaying){playStartProgress=audioProgress;playStartTime=performance.now();}
+  updateProgressUI();
+}
 function seekAudio(e){
   const track=document.getElementById('prog-track');
   const rect=track.getBoundingClientRect();
   audioProgress=Math.max(0,Math.min(100,((e.clientX-rect.left)/rect.width)*100));
+  if(isPlaying){playStartProgress=audioProgress;playStartTime=performance.now();}
   updateProgressUI();
 }
+
 function updateProgressUI(){
   const pct=audioProgress;
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('prog-dot').style.left=pct+'%';
-  const sec=Math.round(pct*1.35); // Approx 2:15 total time
-  document.getElementById('p-curr').textContent=`0${Math.floor(sec/60)}:${sec%60<10?'0'+sec%60:sec%60}`;
+  const sec=Math.round((pct/100)*playTotalSecs);
+  const m=Math.floor(sec/60),s=sec%60;
+  document.getElementById('p-curr').textContent=`0${m}:${s<10?'0'+s:s}`;
 }
 
-/* 부드러운 오디오 재생 애니메이션 (requestAnimationFrame) */
+/* [FIX] rAF 기반 정확한 타이밍 — playTotalSecs 기준으로 진행 */
 function animateAudio(time){
   if(!isPlaying) return;
-  if(!playLastTime) playLastTime = time;
-  const delta = time - playLastTime;
-  
-  if(delta > 30){ 
-    audioProgress = Math.min(100, audioProgress + (delta * 0.005));
-    updateProgressUI();
-    playLastTime = time;
-  }
-  
-  if(audioProgress >= 100){
-    isPlaying = false;
+  const elapsed=(time-playStartTime)/1000; // 초 단위 경과
+  const pctElapsed=(elapsed/playTotalSecs)*100;
+  audioProgress=Math.min(100,playStartProgress+pctElapsed);
+  updateProgressUI();
+  if(audioProgress>=100){
+    isPlaying=false;
     document.getElementById('p-play-icon').style.display='';
     document.getElementById('p-pause-icon').style.display='none';
     document.getElementById('p-play-btn').classList.remove('playing');
-    audioProgress = 100;
+    audioProgress=100;
     updateProgressUI();
   } else {
-    playAnimFrame = requestAnimationFrame(animateAudio);
+    playAnimFrame=requestAnimationFrame(animateAudio);
   }
 }
 
@@ -1249,11 +1428,12 @@ function togglePlay(){
   document.getElementById('p-play-icon').style.display=isPlaying?'none':'';
   document.getElementById('p-pause-icon').style.display=isPlaying?'':'none';
   const btn=document.getElementById('p-play-btn');
-  
   if(isPlaying){
     btn.classList.add('playing');
-    playLastTime = 0;
-    playAnimFrame = requestAnimationFrame(animateAudio);
+    /* [FIX] 재생 시작 시점과 진행도를 함께 기록 */
+    playStartTime=performance.now();
+    playStartProgress=audioProgress;
+    playAnimFrame=requestAnimationFrame(animateAudio);
   } else {
     btn.classList.remove('playing');
     if(playAnimFrame) cancelAnimationFrame(playAnimFrame);
@@ -1263,14 +1443,14 @@ function togglePlay(){
 /* ─── TIMER & MODAL ─── */
 function startTimer(){
   if(timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(()=>{
+  timerInterval=setInterval(()=>{
     if(timeLeft>0){
       timeLeft--;
       const m=Math.floor(timeLeft/60),s=timeLeft%60;
       document.getElementById('timer-text').textContent=`${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
     } else {
       clearInterval(timerInterval);
-      document.getElementById('timer-text').textContent="00:00";
+      document.getElementById('timer-text').textContent='00:00';
     }
   },1000);
 }
@@ -1280,12 +1460,14 @@ function showModal(title,msg,type){
   document.getElementById('modal-icon').className='modal-icon '+(type==='err'?'err':'ok');
   document.getElementById('modal-title').textContent=title;
   document.getElementById('modal-msg').textContent=msg;
-  document.getElementById('overlay').className='overlay show';
-  document.getElementById('modal').className='modal show';
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('modal').classList.add('show');
 }
 function closeModal(){
   document.getElementById('overlay').classList.remove('show');
   document.getElementById('modal').classList.remove('show');
+  document.getElementById('barcode-modal').classList.remove('show');
+  document.getElementById('art-note-modal').classList.remove('show');
 }
 init();
 </script>
