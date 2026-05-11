@@ -127,8 +127,8 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 #view-map{position:relative;overflow:hidden;padding-bottom:0 !important}
 #leaflet-map{position:absolute;inset:0;z-index:1}
 /* [FIX] Attribution 표시 보존 — 숨기지 않음 */
-.leaflet-control-attribution{background:rgba(8,9,10,.7)!important;color:var(--txt3)!important;font-size:9px!important}
-.leaflet-control-attribution a{color:var(--txt2)!important}
+.leaflet-control-attribution{background:rgba(255,255,255,.8)!important;color:#555!important;font-size:9px!important}
+.leaflet-control-attribution a{color:#333!important}
 .map-ui-layer{position:absolute;inset:0;z-index:10;pointer-events:none}
 .map-guide{position:absolute;top:12px;left:12px;right:12px;z-index:20;background:rgba(26,28,31,.97);border:1px solid var(--gold);border-radius:var(--r);padding:12px 14px;display:none;animation:slideDown .3s cubic-bezier(.2,.8,.4,1) both;pointer-events:none}
 @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
@@ -144,8 +144,8 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .lf-quest-pin{width:34px;height:34px;border-radius:50%;background:var(--quest);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer;animation:pulse-q 1.8s infinite}
 .lf-local-pin{width:34px;height:34px;border-radius:50%;background:var(--local);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer;animation:pulse-l 1.8s infinite}
 .lf-user-pin{width:18px;height:18px;border-radius:50%;background:#4fa3ff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(79,163,255,.25)}
-.leaflet-popup-content-wrapper{background:rgba(26,28,31,.97)!important;border:1px solid var(--border2)!important;color:var(--txt1)!important;border-radius:10px!important;box-shadow:0 4px 20px rgba(0,0,0,.6)!important}
-.leaflet-popup-tip{background:rgba(26,28,31,.97)!important}
+.leaflet-popup-content-wrapper{background:rgba(17,18,20,.96)!important;border:1px solid var(--border2)!important;color:var(--txt1)!important;border-radius:10px!important;box-shadow:0 4px 20px rgba(0,0,0,.5)!important}
+.leaflet-popup-tip{background:rgba(17,18,20,.96)!important}
 .lf-popup-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--txt1);margin-bottom:4px}
 .lf-popup-sub{font-size:11px;color:var(--txt2);margin-bottom:10px}
 .lf-popup-btn{background:var(--quest);border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 14px;min-height:44px;border-radius:var(--rs);cursor:pointer;width:100%}
@@ -438,9 +438,8 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .art-note-close{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:12px;border-radius:var(--r);cursor:pointer;transition:background .2s;flex-shrink:0;margin:0 16px 14px;width:calc(100% - 32px)}
 .art-note-close:active{background:var(--bg2)}
 
-/* Leaflet override for dark mode */
-.leaflet-container{background:#1a1e24!important}
-.leaflet-tile{filter:brightness(.85) saturate(.9)!important}
+/* Leaflet override */
+.leaflet-container{background:#e8e0d8!important}
 </style>
 </head>
 <body>
@@ -1132,9 +1131,9 @@ function initMap(){
     zoomControl:false,
     /* [FIX] attributionControl 활성화 (기본값 true — 명시 삭제) */
   });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains:'abcd',maxZoom:19
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    subdomains:'abc',maxZoom:19
   }).addTo(map);
   const userIcon=L.divIcon({className:'',html:'<div class="lf-user-pin"></div>',iconSize:[18,18],iconAnchor:[9,9]});
   L.marker([51.7703,-1.8328],{icon:userIcon}).addTo(map);
