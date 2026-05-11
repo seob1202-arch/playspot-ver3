@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -19,30 +19,38 @@
   --border:#2a2d31;--border2:#363a3f;
   --r:14px;--rs:8px;
 }
-body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px 0}
-.phone{width:390px;height:820px;background:var(--bg0);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;outline:10px solid #0f1012;box-shadow:0 30px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
+/* 스크롤 시 따라 올라가는 현상 방지를 위해 body 고정 */
+body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden;padding:0}
+.phone{width:390px;height:820px;max-height:100vh;background:var(--bg0);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;outline:10px solid #0f1012;box-shadow:0 30px 80px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}*{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
 
 /* header */
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;background:var(--bg0);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:30}
-.hdr-left{width:32px;display:flex;align-items:center}
-.hdr-btn{background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px;display:flex;align-items:center;transition:color .2s}
+.hdr-left{width:44px;display:flex;align-items:center}
+/* 터치 영역 확보 */
+.hdr-btn{background:none;border:none;color:var(--txt2);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;transition:color .2s}
 .hdr-btn:active{color:var(--gold)}
 .hdr-title{font-family:'Playfair Display',serif;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt1);text-align:center;flex:1}
-.hdr-right{width:32px;display:flex;justify-content:flex-end}
+.hdr-right{width:44px;display:flex;justify-content:flex-end;align-items:center}
 .timer-badge{background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;display:none;align-items:center;gap:4px}
 .timer-badge.show{display:flex}
 
+/* 플로팅 뒤로가기 버튼 */
+.fab-back{position:absolute;bottom:80px;left:20px;width:48px;height:48px;border-radius:24px;background:var(--bg2);border:1px solid var(--border);color:var(--txt1);display:flex;align-items:center;justify-content:center;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.5);cursor:pointer;transition:transform 0.2s, background 0.2s}
+.fab-back:active{transform:scale(0.95);background:var(--bg3)}
+
 /* content */
 .content{flex:1;position:relative;overflow:hidden;background:var(--bg1)}
-.view{display:none;flex-direction:column;height:100%;overflow-y:auto}
+/* 스크롤 잘림 방지 하단 패딩 추가 */
+.view{display:none;flex-direction:column;height:100%;overflow-y:auto;padding-bottom:80px !important}
 .view.active{display:flex;animation:fadeUp .28s cubic-bezier(.2,.8,.4,1) both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* tab bar */
 .tabbar{display:none;flex-shrink:0;background:var(--bg0);border-top:1px solid var(--border);padding:10px 6px 20px;z-index:30}
 .tabbar.show{display:flex;justify-content:space-around}
-.tab-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:var(--rs);transition:all .2s;color:var(--txt3)}
+/* 터치 영역 확보 */
+.tab-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;padding:6px 10px;min-width:44px;min-height:44px;border-radius:var(--rs);transition:all .2s;color:var(--txt3)}
 .tab-btn.active{color:var(--gold)}
 .tab-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .tab-label{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
@@ -67,9 +75,8 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .modal-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:22px}
 .modal-icon.err{background:var(--quest-dim);color:var(--quest)}
 .modal-icon.ok{background:var(--local-dim);color:var(--local)}
-.modal h3{font-size:17px;font-weight:600;color:var(--txt1);margin-bottom:8px}
-.modal p{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:24px}
-.modal-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;border-radius:var(--r);cursor:pointer;transition:background .2s}
+/* 터치 영역 확보 */
+.modal-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;min-height:44px;border-radius:var(--r);cursor:pointer;transition:background .2s}
 .modal-btn:active{background:#2e3238}
 
 /* home */
@@ -118,7 +125,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .guide-icon{width:32px;height:32px;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:14px;flex-shrink:0}
 .guide-text{font-size:11px;color:var(--txt1);line-height:1.5}
 .guide-text strong{color:var(--gold)}
-.map-ar-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--txt1);color:#000;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px 24px;border-radius:30px;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;z-index:20;transition:transform .15s,background .2s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);pointer-events:all}
+.map-ar-btn{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:var(--txt1);color:#000;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px 24px;border-radius:30px;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;z-index:20;transition:transform .15s,background .2s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.5);pointer-events:all;min-height:44px}
 .map-ar-btn:active{transform:translateX(-50%) scale(.97)}
 
 /* Leaflet custom marker styles */
@@ -130,7 +137,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .leaflet-popup-tip{background:rgba(26,28,31,.97)!important}
 .lf-popup-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--txt1);margin-bottom:4px}
 .lf-popup-sub{font-size:11px;color:var(--txt2);margin-bottom:10px}
-.lf-popup-btn{background:var(--quest);border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 14px;border-radius:var(--rs);cursor:pointer;width:100%}
+.lf-popup-btn{background:var(--quest);border:none;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 14px;min-height:44px;border-radius:var(--rs);cursor:pointer;width:100%}
 .lf-popup-btn.audio{background:var(--gemini2)}
 .lf-popup-btn.local{background:var(--local);color:#000}
 @keyframes pulse-q{0%{box-shadow:0 0 0 0 rgba(232,82,58,.7),0 2px 8px rgba(0,0,0,.5)}70%{box-shadow:0 0 0 12px rgba(232,82,58,0),0 2px 8px rgba(0,0,0,.5)}100%{box-shadow:0 0 0 0 rgba(232,82,58,0),0 2px 8px rgba(0,0,0,.5)}}
@@ -163,7 +170,8 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .ar-card-type{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
 .ar-card-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--txt1)}
 .ar-card-desc{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
-.ar-cta{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:15px;border-radius:var(--r);border:none;cursor:pointer;transition:opacity .2s}
+/* 터치 영역 확보 */
+.ar-cta{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:15px;min-height:44px;border-radius:var(--r);border:none;cursor:pointer;transition:opacity .2s}
 .ar-cta:active{opacity:.8}
 
 /* quest */
@@ -177,7 +185,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .quest-card{background:rgba(8,9,10,.85);border:1px solid var(--border2);border-radius:20px;padding:24px;width:100%;backdrop-filter:blur(10px)}
 .quest-q{font-family:'Playfair Display',serif;font-size:18px;color:var(--txt1);line-height:1.5;margin-bottom:24px}
 .quiz-opts{display:flex;flex-direction:column;gap:10px}
-.quiz-opt{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:15px 16px;color:var(--txt1);font-size:14px;text-align:left;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
+.quiz-opt{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:15px 16px;min-height:44px;color:var(--txt1);font-size:14px;text-align:left;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s}
 .quiz-opt:active{background:var(--bg3)}
 .quiz-opt.correct{background:var(--local-dim);border-color:var(--local);color:var(--local)}
 .quiz-opt.wrong{background:var(--quest-dim);border-color:var(--quest);color:var(--quest);animation:shake .25s ease both}
@@ -191,7 +199,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .scan-line{position:absolute;top:0;left:0;right:0;height:2px;background:var(--local);box-shadow:0 0 10px var(--local);display:none;animation:scanMove 1.2s linear infinite}
 @keyframes scanMove{0%{top:0}100%{top:100%}}
 .scan-hint{font-size:12px;color:var(--txt3)}
-.scan-cta{width:100%;background:var(--local);color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:14px;border-radius:var(--r);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+.scan-cta{width:100%;background:var(--local);color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:14px;min-height:44px;border-radius:var(--r);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
 .scan-cta:active{opacity:.8}
 .success-card{text-align:center;padding:8px 0}
 .success-icon{font-size:52px;margin-bottom:12px;animation:bounceIn .5s cubic-bezier(.34,1.56,.64,1) both}
@@ -200,11 +208,11 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .success-pts{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:var(--txt1);margin-bottom:16px}
 .local-reward-pill{background:var(--local-dim);border:1px solid var(--local);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--local);margin-bottom:20px;text-align:left}
 .success-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.s-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:13px;border-radius:var(--rs);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background .2s}
+.s-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:13px;min-height:44px;border-radius:var(--rs);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background .2s}
 .s-btn:active{background:var(--bg2)}
 .s-btn.gold{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
 
-/* ── AUDIO PLAYER — FIX #3: progress bar always visible in result ── */
+/* ── AUDIO PLAYER ── */
 #view-player{overflow:hidden;background:var(--bg1)}
 .player-hero{position:relative;height:220px;flex-shrink:0;overflow:hidden}
 .player-hero img{width:100%;height:100%;object-fit:cover;opacity:.75}
@@ -225,17 +233,17 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 @keyframes spin{to{transform:rotate(360deg)}}
 .gemini-loading p{font-family:'DM Mono',monospace;font-size:12px;color:var(--txt2);background:linear-gradient(90deg, var(--gemini1), var(--gemini2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:pulseTxt 1.5s infinite}
 @keyframes pulseTxt{0%,100%{opacity:.6}50%{opacity:1}}
-/* FIX #3: result pane always shows player controls */
 .gemini-result{display:none;flex-direction:column;flex:1;overflow:hidden}
 .player-controls{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 22px;flex-shrink:0}
 .player-now-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gemini2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .player-progress{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .prog-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--txt2);min-width:36px}
 .prog-track{flex:1;height:4px;background:var(--bg3);border-radius:2px;position:relative;cursor:pointer}
-.prog-fill{height:100%;background:linear-gradient(90deg, var(--gemini1), var(--gemini2));border-radius:2px;width:0%;transition:width .3s linear}
-.prog-dot{width:14px;height:14px;background:var(--gemini2);border-radius:50%;position:absolute;top:50%;transform:translateY(-50%) translateX(-50%);transition:left .3s linear;cursor:grab;box-shadow:0 0 10px rgba(155,114,203,0.5)}
+/* 애니메이션 진행을 위해 transition 제거 후 JS requestAnimationFrame 사용 */
+.prog-fill{height:100%;background:linear-gradient(90deg, var(--gemini1), var(--gemini2));border-radius:2px;width:0%}
+.prog-dot{width:14px;height:14px;background:var(--gemini2);border-radius:50%;position:absolute;top:50%;transform:translateY(-50%) translateX(-50%);cursor:grab;box-shadow:0 0 10px rgba(155,114,203,0.5)}
 .player-btns{display:flex;align-items:center;justify-content:center;gap:28px}
-.p-btn{background:none;border:none;color:var(--txt2);cursor:pointer;display:flex;align-items:center;transition:color .2s;padding:6px}
+.p-btn{background:none;border:none;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .2s;padding:6px;min-width:44px;min-height:44px}
 .p-btn:hover{color:var(--txt1)}
 .p-play{width:52px;height:52px;background:linear-gradient(135deg, var(--gemini1), var(--gemini2));border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s}
 .p-play:active{transform:scale(.95)}
@@ -247,7 +255,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .transcript{font-size:13px;color:var(--txt1);line-height:1.7;font-weight:300}
 .qa-title{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);margin-bottom:12px}
 .qa-list{display:flex;flex-direction:column;gap:8px}
-.qa-btn{background:var(--bg0);border:1px solid var(--border2);border-radius:var(--rs);padding:14px 16px;color:var(--txt1);font-size:13px;text-align:left;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px}
+.qa-btn{background:var(--bg0);border:1px solid var(--border2);border-radius:var(--rs);padding:14px 16px;color:var(--txt1);font-size:13px;text-align:left;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px;min-height:44px}
 .qa-btn:active{background:var(--bg2);border-color:var(--gemini2)}
 .qa-icon{color:var(--gemini2);font-size:14px;margin-top:2px}
 
@@ -273,7 +281,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .artwork-year{font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3);margin-top:2px}
 .artwork-arrow{color:var(--txt3);flex-shrink:0}
 
-/* Gallery scan — FIX #1: no re-scan button, goes straight to result */
+/* Gallery scan */
 #view-gallery-scan{align-items:center;justify-content:center;position:relative;background:#000}
 .gallery-scan-bg{position:absolute;inset:0;background:url('https://picsum.photos/id/1047/400/800') center/cover no-repeat;opacity:.25;filter:blur(2px)}
 .gallery-scan-frame{position:relative;z-index:10;width:280px;height:220px;border-radius:12px;overflow:hidden}
@@ -291,7 +299,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .gallery-scan-panel{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to bottom,transparent,var(--bg0) 30%);padding:20px;z-index:20;display:none;animation:slideUpPanel .4s cubic-bezier(.2,.8,.4,1) both}
 .gallery-scan-panel.show{display:block}
 
-/* Gallery artwork detail — FIX #1 & #2 */
+/* Gallery artwork detail */
 #view-artwork{overflow:hidden;background:var(--bg1)}
 .artwork-hero{position:relative;height:240px;flex-shrink:0;overflow:hidden}
 .artwork-hero img{width:100%;height:100%;object-fit:cover;opacity:.85}
@@ -300,7 +308,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .artwork-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:linear-gradient(90deg,var(--gallery1),var(--gallery2));color:#fff;padding:4px 10px;border-radius:20px;margin-bottom:6px}
 .artwork-hero-title{font-family:'Playfair Display',serif;font-size:24px;color:#fff;line-height:1.2;margin-bottom:2px}
 .artwork-hero-artist{font-size:12px;color:rgba(255,255,255,.6)}
-/* FIX #1: init state removed; scan → loading → result only when from gallery list */
 .artwork-scan-init{padding:28px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;flex:1;overflow:hidden}
 .artwork-scan-icon{font-size:40px;margin-bottom:14px}
 .artwork-scan-init h3{font-size:17px;font-weight:600;color:var(--txt1);margin-bottom:10px}
@@ -349,10 +356,10 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .flow-text{flex:1;padding-top:6px}
 .flow-text-title{font-size:13px;font-weight:600;color:var(--txt1);margin-bottom:2px}
 .flow-text-sub{font-size:11px;color:var(--txt2)}
-/* FIX #2: Save buttons - clear destination shown */
-.save-to-wallet-btn{width:100%;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;border-radius:var(--r);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;margin-bottom:8px}
+/* 터치 영역 확보 */
+.save-to-wallet-btn{width:100%;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;min-height:44px;border-radius:var(--r);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;margin-bottom:8px}
 .save-to-wallet-btn:active{opacity:.8}
-.voice-narr-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s}
+.voice-narr-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:14px;min-height:44px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s}
 .voice-narr-btn:active{background:var(--bg2)}
 .wallet-saved-badge{background:var(--local-dim);border:1px solid var(--local);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--local);display:none;align-items:center;gap:8px;margin-top:8px}
 .wallet-saved-badge.show{display:flex}
@@ -398,7 +405,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
 .coupon-card.gold-coupon .coupon-from{color:var(--gold)}
 .coupon-card.gallery-coupon .coupon-from{color:var(--gallery2)}
 .coupon-name{font-size:16px;font-weight:600;color:var(--txt1);margin-bottom:14px;padding-right:60px}
-.coupon-btn{background:rgba(0,0,0,.3);border:none;color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:10px 16px;border-radius:var(--rs);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background .2s}
+.coupon-btn{background:rgba(0,0,0,.3);border:none;color:var(--txt1);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:10px 16px;min-height:44px;border-radius:var(--rs);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:background .2s}
 .coupon-btn:active{background:rgba(0,0,0,.5)}
 
 /* Leaflet override for dark mode */
@@ -419,9 +426,8 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
   <!-- header -->
   <div class="hdr">
     <div class="hdr-left">
-      <button class="hdr-btn" id="hdr-left-btn" onclick="hdrLeft()">
+      <button class="hdr-btn" id="hdr-left-btn" onclick="toggleMenu()">
         <svg id="icon-menu" width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        <svg id="icon-back" width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
     </div>
     <div class="hdr-title" id="hdr-title">All Tours</div>
@@ -434,7 +440,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
   </div>
 
   <div class="content">
-
     <!-- home -->
     <div class="view active" id="view-home" style="padding:24px 20px">
       <div class="home-eyebrow">Independent Tours</div>
@@ -483,8 +488,8 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
       <div id="spot-list"></div>
     </div>
 
-    <!-- map — Leaflet real map FIX #4 -->
-    <div class="view" id="view-map" style="position:relative;overflow:hidden">
+    <!-- map — Leaflet real map -->
+    <div class="view" id="view-map" style="position:relative;overflow:hidden;padding-bottom:0 !important">
       <div id="leaflet-map" style="position:absolute;inset:0;z-index:1"></div>
       <div class="map-guide" id="map-guide">
         <div class="guide-icon">🧭</div>
@@ -535,7 +540,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
       </div>
     </div>
 
-    <!-- audio player — FIX #3: always shows controls -->
+    <!-- audio player -->
     <div class="view" id="view-player">
       <div class="player-hero">
         <img id="p-img" src="" alt="">
@@ -561,7 +566,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
         <p>Gemini AI가 시각 요소를 분석 중입니다...</p>
       </div>
       <div class="gemini-result" id="gemini-result">
-        <!-- FIX #3: Player controls now at top, always visible -->
         <div class="player-controls">
           <div class="player-now-label">
             <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 8l6 4-6 4V8z" fill="currentColor"/></svg>
@@ -610,18 +614,18 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
           <div class="gallery-hero-sub">Trafalgar Square, London · Room 1–46</div>
         </div>
       </div>
-      <button class="gallery-scan-btn" onclick="openGalleryScan()" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));border:none;border-radius:var(--r);padding:16px 20px;margin:12px 20px;width:calc(100% - 40px);cursor:pointer;transition:opacity .2s">
+      <button class="gallery-scan-btn" onclick="openGalleryScan()" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--gallery1),var(--gallery2));border:none;border-radius:var(--r);padding:16px 20px;margin:12px 20px;width:calc(100% - 40px);cursor:pointer;transition:opacity .2s;min-height:44px">
         <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📷</div>
         <div style="text-align:left;flex:1">
           <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:2px">작품 스캔하기</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.65)">카메라로 작품을 촬영하면 Gemini가 즉시 분석합니다</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.65)">카메라로 작품을 촬영하면 AI가 즉시 분석합니다</div>
         </div>
         <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,.7)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
       <div class="gallery-rooms" id="gallery-rooms"></div>
     </div>
 
-    <!-- Gallery artwork detail — FIX #1 #2 -->
+    <!-- Gallery artwork detail -->
     <div class="view" id="view-artwork">
       <div class="artwork-hero">
         <img id="aw-img" src="" alt="">
@@ -632,7 +636,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
           <div class="artwork-hero-artist" id="aw-artist">Artist · Year</div>
         </div>
       </div>
-      <!-- State: Loading (auto-starts) -->
       <div class="artwork-loading" id="aw-loading">
         <div class="gallery-spinner"></div>
         <div class="artwork-loading-steps" id="aw-loading-steps">
@@ -643,14 +646,13 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
           <div class="loading-step" id="lstep-4"><div class="loading-step-icon">✨</div>맞춤형 해설 생성 중</div>
         </div>
       </div>
-      <!-- State: Result -->
       <div class="artwork-result" id="aw-result">
         <div class="artwork-analysis-bar" id="aw-tabs"></div>
         <div class="artwork-body" id="aw-body"></div>
       </div>
     </div>
 
-    <!-- Gallery scan — FIX #1: no re-scan, opens artwork detail directly -->
+    <!-- Gallery scan -->
     <div class="view" id="view-gallery-scan">
       <div class="gallery-scan-bg"></div>
       <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:0">
@@ -666,7 +668,6 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
           <div class="gallery-scan-hint">카메라가 자동으로 작품을 인식합니다</div>
         </div>
       </div>
-      <!-- FIX #1: recognized → auto open artwork detail (no intermediate panel with re-scan) -->
       <div class="gallery-scan-panel" id="gscan-panel">
         <div class="ar-card" style="border-color:rgba(196,152,42,.4)">
           <div class="ar-card-hdr">
@@ -723,13 +724,18 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
     </div>
   </div>
 
+  <!-- 플로팅 뒤로가기 버튼 -->
+  <button class="fab-back" id="fab-back" onclick="goBack()" style="display:none">
+    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </button>
+
   <!-- tab bar -->
   <div class="tabbar" id="tabbar">
     <button class="tab-btn" id="tab-tour" onclick="switchTab('tour')">
       <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
       <span class="tab-label">리스트</span>
     </button>
-    <button class="tab-btn" id="tab-map" onclick="switchTab('map');initMap()">
+    <button class="tab-btn" id="tab-map" onclick="switchTab('map')">
       <svg viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
       <span class="tab-label">지도/AR</span>
     </button>
@@ -737,7 +743,7 @@ body{font-family:'DM Sans',sans-serif;background:#000;display:flex;align-items:c
       <svg viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
       <span class="tab-label">갤러리</span>
     </button>
-    <button class="tab-btn" id="tab-leaderboard" onclick="switchTab('leaderboard');updateLB()">
+    <button class="tab-btn" id="tab-leaderboard" onclick="switchTab('leaderboard')">
       <svg viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
       <span class="tab-label">랭킹</span>
     </button>
@@ -787,6 +793,11 @@ let viewStack=['home'];
 const lbOthers=[{name:'John D.',score:450},{name:'Emma W.',score:320},{name:'Carlos M.',score:200}];
 const titles={home:'All Tours',tour:'Tour List',map:'Map & AR','ar-scan':'AR Explore',quest:'Live Mission',player:'Gemini AI Guide',gallery:'National Gallery',artwork:'AI Art Analysis','gallery-scan':'Artwork Scanner',leaderboard:'Leaderboard',rewards:'My Wallet'};
 
+/* 오디오 플레이어 애니메이션 상태 */
+let playLastTime = 0;
+let playAnimFrame = null;
+let timerInterval = null;
+
 function init(){buildSpotList();buildGallery();updateLB();startTimer();}
 
 /* ─── COTSWOLDS ─── */
@@ -828,7 +839,6 @@ function openGallery(){
   document.getElementById('timer-badge').classList.add('show');
 }
 
-/* FIX #1: openArtwork auto-starts loading (no init scan screen) */
 function openArtwork(id){
   const allArtworks=artworkRooms.flatMap(r=>r.artworks);
   currentArtwork=allArtworks.find(a=>a.id===id);
@@ -836,14 +846,11 @@ function openArtwork(id){
   document.getElementById('aw-img').src=currentArtwork.img;
   document.getElementById('aw-title').textContent=currentArtwork.title;
   document.getElementById('aw-artist').textContent=currentArtwork.artist+' · '+currentArtwork.year;
-  // reset — go straight to loading, skip init
   document.getElementById('aw-loading').style.display='flex';
   document.getElementById('aw-result').style.display='none';
-  // reset steps
   document.querySelectorAll('.loading-step').forEach(s=>{s.classList.remove('active','done');});
   viewStack.push('artwork');
   showView('artwork');
-  // auto start analysis
   runArtworkAnalysis();
 }
 
@@ -876,7 +883,6 @@ function renderArtTab(idx){
   const body=document.getElementById('aw-body');
   if(idx===0){
     const metaChips=Object.entries(a.meta).map(([k,v])=>`<div class="artwork-meta-chip"><div class="meta-chip-label">${k}</div><div class="meta-chip-val">${v}</div></div>`).join('');
-    /* FIX #2: Save button clearly says "지갑에 저장" with wallet icon */
     body.innerHTML=`<div class="artwork-meta-row">${metaChips}</div>
     <div class="insight-box"><div class="insight-lbl">✨ Gemini 시각 분석</div><p class="insight-txt">${a.overview}</p></div>
     <button class="voice-narr-btn" onclick="startVoiceNarration('${aw.id}')">🔊 음성 해설 듣기</button>
@@ -891,7 +897,6 @@ function renderArtTab(idx){
     const qaHtml=a.qa.map((q,i)=>`<button class="deep-q-btn" onclick="showArtAnswer(${i})"><div class="deep-q-icon">✨</div><div>${q.q}</div></button>`).join('');
     body.innerHTML=`<div class="deep-q-title">Gemini가 생성한 심화 질문</div><div class="deep-q-list">${qaHtml}</div><div id="art-answer-box" style="display:none" class="insight-box"><div class="insight-lbl">💡 AI 답변</div><p class="insight-txt" id="art-answer-txt"></p></div>`;
   } else if(idx===4){
-    /* FIX #2: Save button explicitly describes destination */
     body.innerHTML=`<div class="visitor-flow"><div class="flow-title">맞춤형 관람 플로우</div><div class="flow-steps">
       <div class="flow-step"><div class="flow-icon active-flow">📷</div><div class="flow-text"><div class="flow-text-title">작품 첫 인상 기록</div><div class="flow-text-sub">촬영 후 AI가 즉시 분석</div></div></div>
       <div class="flow-step"><div class="flow-icon active-flow">🔍</div><div class="flow-text"><div class="flow-text-title">세부 요소 탐구</div><div class="flow-text-sub">기법·색채·구도 딥다이브</div></div></div>
@@ -909,14 +914,11 @@ function showArtAnswer(idx){
   document.getElementById('art-answer-txt').textContent=a.a;
 }
 
-/* FIX #2: Save to wallet function */
 function saveArtworkToWallet(id){
   const aw=currentArtwork||artworkRooms.flatMap(r=>r.artworks).find(a=>a.id===id);
   if(!aw) return;
-  // Show badge inline
   const badges=document.querySelectorAll(`[id^="saved-badge"]`);
   badges.forEach(b=>{if(b.id.includes(id)) b.classList.add('show');});
-  // Add to wallet if not already there
   if(!document.querySelector(`[data-artwork-id="${id}"]`)){
     document.getElementById('wallet-empty').style.display='none';
     const wl=document.getElementById('wallet-list');
@@ -924,7 +926,6 @@ function saveArtworkToWallet(id){
   }
 }
 
-/* FIX #3: Voice narration opens audio player */
 function startVoiceNarration(id){
   const aw=artworkRooms.flatMap(r=>r.artworks).find(a=>a.id===id);
   if(!aw) return;
@@ -946,7 +947,6 @@ function startVoiceNarration(id){
   setTimeout(()=>togglePlay(),300);
 }
 
-/* FIX #1: Gallery scan → auto open artwork (no re-scan needed) */
 function openGalleryScan(){
   viewStack.push('gallery-scan');
   showView('gallery-scan');
@@ -966,24 +966,19 @@ function runGalleryScanAnim(){
     document.getElementById('gscan-desc').textContent=`${randomAw.artist} · ${randomAw.year} — AI 해설 준비 완료`;
     document._scannedArtworkId=randomAw.id;
     panel.classList.add('show');
-    // FIX #1: auto-proceed after 1.5s (no additional scan step)
   },3000);
 }
 
-/* FIX #1: Goes directly to result, not back to init scan screen */
 function openScannedArtwork(){
   const id=document._scannedArtworkId||'ng1';
-  // pop gallery-scan from stack
   if(viewStack[viewStack.length-1]==='gallery-scan') viewStack.pop();
   setTimeout(()=>openArtwork(id),50);
 }
 
-/* ─── LEAFLET MAP — FIX #4 ─── */
+/* ─── LEAFLET MAP ─── */
 function initMap(){
   if(mapInited) return;
   mapInited=true;
-  const phoneEl=document.querySelector('.phone');
-  // Bibury, Cotswolds center
   const map=L.map('leaflet-map',{
     center:[51.7705,-1.8325],
     zoom:16,
@@ -994,13 +989,10 @@ function initMap(){
     attribution:'© OpenStreetMap © CARTO',
     subdomains:'abcd',maxZoom:19
   }).addTo(map);
-  // Attribution
   L.control.attribution({position:'bottomright',prefix:''}).addTo(map);
   map.attributionControl.setPrefix('');
-  // User location dot
   const userIcon=L.divIcon({className:'',html:'<div class="lf-user-pin"></div>',iconSize:[18,18],iconAnchor:[9,9]});
   L.marker([51.7703,-1.8328],{icon:userIcon}).addTo(map);
-  // Spot markers
   spots.forEach(s=>{
     const isQ=s.type.includes('Quest'),isL=s.type==='Quest_Local';
     const cls=isL?'lf-local-pin':isQ?'lf-quest-pin':'lf-audio-pin';
@@ -1022,14 +1014,17 @@ function showView(id){
   document.getElementById('view-'+id).classList.add('active');
   document.getElementById('hdr-title').textContent=titles[id]||id;
   const root=['home','tour','map','gallery','leaderboard','rewards'];
-  document.getElementById('icon-menu').style.display=root.includes(id)?'':'none';
-  document.getElementById('icon-back').style.display=root.includes(id)?'none':'';
+  
+  /* 플로팅 뒤로가기 제어 */
+  document.getElementById('fab-back').style.display = root.includes(id) ? 'none' : 'flex';
+  
   const tb=document.getElementById('tabbar');
   tb.className=id==='home'?'tabbar':'tabbar show';
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   const tab=document.getElementById('tab-'+id);
   if(tab) tab.classList.add('active');
   if(id==='map'){initMap();setTimeout(()=>{if(leafletMap)leafletMap.invalidateSize();},100);}
+  if(id==='leaderboard') updateLB();
 }
 
 function switchTab(id){
@@ -1039,14 +1034,13 @@ function switchTab(id){
 }
 
 function selectTour(){viewStack=['home','tour'];showView('tour');document.getElementById('timer-badge').classList.add('show');}
-function hdrLeft(){if(document.getElementById('icon-back').style.display==='none'){toggleMenu();}else{goBack();}}
 function goBack(){if(viewStack.length>1) viewStack.pop();const prev=viewStack[viewStack.length-1];showView(prev);if(isPlaying)togglePlay();}
 function toggleMenu(){document.getElementById('side-menu').classList.toggle('open');}
 
 /* ─── COTSWOLDS QUEST ─── */
 function guideToQuest(id){
   currentSpot=spots.find(s=>s.id===id);
-  switchTab('map');initMap();
+  switchTab('map');
   const g=document.getElementById('map-guide'),gt=document.getElementById('guide-text');
   gt.innerHTML=`<strong>'${currentSpot.title}'</strong> 위치로 이동 후 AR 탐색을 실행하세요`;
   g.classList.add('show');setTimeout(()=>g.classList.remove('show'),3500);
@@ -1115,14 +1109,25 @@ function runLocalScan(pts){
   hint.textContent='AI Vision 인식 중...';line.style.display='block';
   setTimeout(()=>{line.style.display='none';questSuccess(pts,true);},2200);
 }
+
 function questSuccess(pts,isLocal){
   myScore+=pts;
   const inner=document.getElementById('quest-inner');
-  const localPill=isLocal?`<div class="local-reward-pill">🎉 Arlington Tea Room — 갓 구운 스콘 1개 무료 쿠폰 발급 완료!</div>`:'';
-  inner.innerHTML=`<div class="quest-card"><div class="success-card"><div class="success-icon">✨</div><div class="success-label" style="color:${isLocal?'var(--local)':'var(--quest)'}">Mission Cleared!</div><div class="success-pts">+${pts} PTS</div>${localPill}<div class="success-btns"><button class="s-btn" onclick="switchTab('rewards')">지갑 확인</button><button class="s-btn gold" onclick="switchTab('leaderboard');updateLB()">랭킹 확인</button></div></div></div>`;
-  if(isLocal) addCoupon(false);
-  checkRank1(pts);
+  
+  /* 부자연스러운 전환을 방지하는 페이드 효과 추가 */
+  inner.style.transition = 'opacity 0.3s';
+  inner.style.opacity = '0';
+  
+  setTimeout(() => {
+    const localPill=isLocal?`<div class="local-reward-pill">🎉 Arlington Tea Room — 갓 구운 스콘 1개 무료 쿠폰 발급 완료!</div>`:'';
+    inner.innerHTML=`<div class="quest-card"><div class="success-card"><div class="success-icon">✨</div><div class="success-label" style="color:${isLocal?'var(--local)':'var(--quest)'}">Mission Cleared!</div><div class="success-pts">+${pts} PTS</div>${localPill}<div class="success-btns"><button class="s-btn" onclick="switchTab('rewards')">지갑 확인</button><button class="s-btn gold" onclick="switchTab('leaderboard');">랭킹 확인</button></div></div></div>`;
+    inner.style.opacity = '1';
+    
+    if(isLocal) addCoupon(false);
+    checkRank1(pts);
+  }, 300);
 }
+
 function addCoupon(isGold){
   document.getElementById('wallet-empty').style.display='none';
   const wl=document.getElementById('wallet-list');
@@ -1148,7 +1153,7 @@ function updateLB(){
   }).join('');
 }
 
-/* ─── AUDIO PLAYER — FIX #3 ─── */
+/* ─── AUDIO PLAYER ─── */
 function openAudio(id){
   currentSpot=spots.find(x=>x.id===id);
   document.getElementById('p-img').src=currentSpot.img;
@@ -1199,7 +1204,6 @@ function renderQaButtons(qaArray){
 }
 function playQa(idx){const qa=currentSpot.qa[idx];setQaContent(qa.a,qa.q);togglePlay();}
 
-/* FIX #3: rewind / forward controls */
 function rewindAudio(){audioProgress=Math.max(0,audioProgress-11);updateProgressUI();}
 function forwardAudio(){audioProgress=Math.min(100,audioProgress+11);updateProgressUI();}
 function seekAudio(e){
@@ -1212,8 +1216,32 @@ function updateProgressUI(){
   const pct=audioProgress;
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('prog-dot').style.left=pct+'%';
-  const sec=Math.round(pct*1.35);
+  const sec=Math.round(pct*1.35); // Approx 2:15 total time
   document.getElementById('p-curr').textContent=`0${Math.floor(sec/60)}:${sec%60<10?'0'+sec%60:sec%60}`;
+}
+
+/* 부드러운 오디오 재생 애니메이션 (requestAnimationFrame) */
+function animateAudio(time){
+  if(!isPlaying) return;
+  if(!playLastTime) playLastTime = time;
+  const delta = time - playLastTime;
+  
+  if(delta > 30){ 
+    audioProgress = Math.min(100, audioProgress + (delta * 0.005));
+    updateProgressUI();
+    playLastTime = time;
+  }
+  
+  if(audioProgress >= 100){
+    isPlaying = false;
+    document.getElementById('p-play-icon').style.display='';
+    document.getElementById('p-pause-icon').style.display='none';
+    document.getElementById('p-play-btn').classList.remove('playing');
+    audioProgress = 100;
+    updateProgressUI();
+  } else {
+    playAnimFrame = requestAnimationFrame(animateAudio);
+  }
 }
 
 function togglePlay(){
@@ -1221,24 +1249,32 @@ function togglePlay(){
   document.getElementById('p-play-icon').style.display=isPlaying?'none':'';
   document.getElementById('p-pause-icon').style.display=isPlaying?'':'none';
   const btn=document.getElementById('p-play-btn');
+  
   if(isPlaying){
     btn.classList.add('playing');
-    audioInt=setInterval(()=>{
-      audioProgress=Math.min(100,audioProgress+0.7);
-      updateProgressUI();
-      if(audioProgress>=100){clearInterval(audioInt);isPlaying=false;document.getElementById('p-play-icon').style.display='';document.getElementById('p-pause-icon').style.display='none';btn.classList.remove('playing');}
-    },100);
+    playLastTime = 0;
+    playAnimFrame = requestAnimationFrame(animateAudio);
   } else {
-    btn.classList.remove('playing');clearInterval(audioInt);
+    btn.classList.remove('playing');
+    if(playAnimFrame) cancelAnimationFrame(playAnimFrame);
   }
 }
 
 /* ─── TIMER & MODAL ─── */
 function startTimer(){
-  setInterval(()=>{
-    if(timeLeft>0){timeLeft--;const m=Math.floor(timeLeft/60),s=timeLeft%60;document.getElementById('timer-text').textContent=`${m<10?'0'+m:m}:${s<10?'0'+s:s}`;}
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    if(timeLeft>0){
+      timeLeft--;
+      const m=Math.floor(timeLeft/60),s=timeLeft%60;
+      document.getElementById('timer-text').textContent=`${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
+    } else {
+      clearInterval(timerInterval);
+      document.getElementById('timer-text').textContent="00:00";
+    }
   },1000);
 }
+
 function showModal(title,msg,type){
   document.getElementById('modal-icon').textContent=type==='err'?'⚠':'✓';
   document.getElementById('modal-icon').className='modal-icon '+(type==='err'?'err':'ok');
